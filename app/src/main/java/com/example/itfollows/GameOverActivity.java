@@ -8,6 +8,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.content.SharedPreferences;
+import java.util.Locale;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -53,13 +55,20 @@ public class GameOverActivity extends AppCompatActivity {
 
         long timeTakenMillis = getIntent().getLongExtra(EXTRA_TIME_TAKEN, 0);
         float distanceTraveled = getIntent().getFloatExtra(EXTRA_DISTANCE_TRAVELED, 0f);
+        SharedPreferences prefs = getSharedPreferences("GameSettings", MODE_PRIVATE);
+        boolean useImperial = "Imperial".equals(prefs.getString(SettingsActivity.KEY_MEASUREMENT_UNIT, "Metric"));
 
         long seconds = (timeTakenMillis / 1000) % 60;
         long minutes = (timeTakenMillis / (1000 * 60)) % 60;
         // long hours = (timeTakenMillis / (1000 * 60 * 60)) % 24; // If needed
 
         timeTakenText.setText(String.format("Time Survived: %02d:%02d", minutes, seconds));
-        distanceTraveledText.setText(String.format("Snail Traveled: %.1f m", distanceTraveled));
+        if (useImperial) {
+            double feet = distanceTraveled * 3.28084;
+            distanceTraveledText.setText(String.format(Locale.US, "Snail Traveled: %.1f ft", feet));
+        } else {
+            distanceTraveledText.setText(String.format(Locale.US, "Snail Traveled: %.1f m", distanceTraveled));
+        }
 
         // Initialize Mobile Ads SDK
         MobileAds.initialize(this, initializationStatus -> {

@@ -36,6 +36,7 @@ public class SettingsActivity extends AppCompatActivity {
     // Change to Spinners if your layout uses them
     private Spinner speedDropdown;
     private Spinner distanceDropdown;
+    private Spinner measurementUnitDropdown;
     private Button applyButton;
     private SnailSpriteAdapter snailSpriteAdapter;
     private List<SnailSprite> spriteList;
@@ -52,7 +53,9 @@ public class SettingsActivity extends AppCompatActivity {
             "Very Far: 200–400m",      // For Olympic Sprinter-level chase
             "Extreme: 400–800m",       // For Car Speed — gives players a head start
     };
+    private final String[] unitOptions = {"Metric", "Imperial"};
     public static final String DEFAULT_SNAIL_SPRITE_IDENTIFIER = "snail_classic";
+    public static final String KEY_MEASUREMENT_UNIT = "measurementUnit";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,12 +71,14 @@ public class SettingsActivity extends AppCompatActivity {
         volumeSlider = findViewById(R.id.volumeSlider);
         speedDropdown = findViewById(R.id.snailSpeedDropdown);
         distanceDropdown = findViewById(R.id.snailDistanceDropdown);
+        measurementUnitDropdown = findViewById(R.id.measurementUnitDropdown);
         applyButton = findViewById(R.id.applyButton);
         LinearLayout snailSpriteContainer = findViewById(R.id.snailSpriteContainer);
 
         // Setup dropdowns
         setupSpinner(speedDropdown, speedOptions);
         setupSpinner(distanceDropdown, distanceOptions);
+        setupSpinner(measurementUnitDropdown, unitOptions);
 
         // Load sprite options
         spriteList = new ArrayList<>();
@@ -260,9 +265,13 @@ public class SettingsActivity extends AppCompatActivity {
         String savedDistance = prefs.getString("snailDistance", "Distant");
         setSpinnerSelection(distanceDropdown, distanceOptions, savedDistance);
 
-        Log.d("MainActivity_Settings", "Speed: " + savedSpeed + ", Distance: " + savedDistance);
+        String savedUnit = prefs.getString(KEY_MEASUREMENT_UNIT, "Metric");
+        setSpinnerSelection(measurementUnitDropdown, unitOptions, savedUnit);
+
+        Log.d("MainActivity_Settings", "Speed: " + savedSpeed + ", Distance: " + savedDistance + ", Units: " + savedUnit);
         Log.d("SettingsActivity", "Preferences loaded. Volume: " + volumeSlider.getProgress() +
                 ", Speed: " + savedSpeed + ", Distance: " + savedDistance +
+                ", Units: " + savedUnit +
                 ", Sprite: " + currentSelectedSpriteIdentifier);
     }
     private void saveSettings() {
@@ -286,6 +295,9 @@ public class SettingsActivity extends AppCompatActivity {
         if (distanceDropdown.getSelectedItem() != null) {
             editor.putString("snailDistance", distanceDropdown.getSelectedItem().toString());
         }
+        if (measurementUnitDropdown.getSelectedItem() != null) {
+            editor.putString(KEY_MEASUREMENT_UNIT, measurementUnitDropdown.getSelectedItem().toString());
+        }
 
         // Save the selected snail sprite identifier
         editor.putString("selectedSnailSprite", currentSelectedSpriteIdentifier);
@@ -294,6 +306,7 @@ public class SettingsActivity extends AppCompatActivity {
         Log.d("SettingsActivity", "Settings saved. Volume: " + volumeSlider.getProgress() +
                 ", Speed: " + (speedDropdown.getSelectedItem() != null ? speedDropdown.getSelectedItem().toString() : "N/A") +
                 ", Distance: " + (distanceDropdown.getSelectedItem() != null ? distanceDropdown.getSelectedItem().toString() : "N/A") +
+                ", Units: " + (measurementUnitDropdown.getSelectedItem() != null ? measurementUnitDropdown.getSelectedItem().toString() : "N/A") +
                 ", Sprite: " + currentSelectedSpriteIdentifier);
         editor.apply();
     }
