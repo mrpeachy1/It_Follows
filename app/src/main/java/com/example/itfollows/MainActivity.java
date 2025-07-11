@@ -1473,6 +1473,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             updatePowerUpUI(); // if you have this method
 
             Log.d("GameState", "Loaded game + power-ups: Salt=" + saltBombCount + ", Shield=" + shellShieldCount);
+
+            // Determine how long the game was paused and move the snail
+            long elapsed = SystemClock.elapsedRealtime() - timePausedElapsedMillis;
+            if (elapsed > 0) {
+                recalculateSnailPositionAfterPause(elapsed);
+                clearGameStatePrefs();
+                startSnailChase();
+            }
         } else {
             Log.d("GameState", "No saved game state to load.");
         }
@@ -2401,15 +2409,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         loadSelectedSnailSprite();
 
-        if (snailMarker != null && hasSpawnedSnail && snailPosition != null) {
-            // ✅ Save the snail's position
-            SharedPreferences.Editor gameStateEditor = getSharedPreferences("SnailGameState", MODE_PRIVATE).edit();
-            gameStateEditor.putString("snail_lat", String.valueOf(snailPosition.latitude));
-            gameStateEditor.putString("snail_lng", String.valueOf(snailPosition.longitude));
-            gameStateEditor.apply();
-            Log.d("onPause", "Saved snail position: " + snailPosition.latitude + ", " + snailPosition.longitude);
+        // Persist the full game state including player/snail positions and the
+        // current elapsed realtime value so we can properly resume later.
+        saveGameState();
 
-            updateSnailIcon(); // Optional: refresh the sprite
+        if (snailMarker != null && hasSpawnedSnail) {
+            updateSnailIcon(); // Optional: refresh the sprite icon while paused
         }
 
         LocalBroadcastManager.getInstance(this).registerReceiver(gameOverReceiver,
