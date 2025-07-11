@@ -76,7 +76,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LatLng beaconPosition;
     private boolean beaconActive = false;
     private float snailSpeedMultiplier = 1.0f;
-
+    private boolean snailSpeedBoostActive = false;
+    private long snailSpeedBoostEndTimeMs = 0;
+    private Handler beaconSpawnHandler = new Handler();
+    private Runnable beaconSpawnRunnable;
     private static final String HOLD_MINIGAME_PREFS = "HoldMinigamePrefs";
     private static final String KEY_LAST_HOLD_PLAYED_DATE = "LastHoldMinigamePlayed";
     private static final long TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000L;
@@ -253,28 +256,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (playerDist < 10f) {
             beaconActive = false;
             snailBeaconMarker.remove();
-            pushSnailBack(50); // 👈 custom pushback logic
+            pushSnailBack(50);
             Toast.makeText(this, "You reached the beacon! The snail is pushed back.", Toast.LENGTH_SHORT).show();
 
-            // 🔁 Respawn another beacon in 60 seconds
-            new Handler().postDelayed(() -> {
-                if (!beaconActive) {
-                    spawnSnailBeacon();
-                }
-            }, 60000);
+            scheduleBeaconSpawn();
         } else if (snailDist < 10f) {
             beaconActive = false;
             snailBeaconMarker.remove();
-            boostSnailSpeed();
+            boostSnailSpeedTemporarily();
             Toast.makeText(this, "The snail consumed the beacon! It moves faster...", Toast.LENGTH_SHORT).show();
-
-            // 🔁 Respawn another beacon in 60 seconds
-            new Handler().postDelayed(() -> {
-                if (!beaconActive) {
-                    spawnSnailBeacon();
-                }
-            }, 60000);
+            scheduleBeaconSpawn();
         }
+    }
+    private void scheduleBeaconSpawn() {
+        long minDelay = TimeUnit.HOURS.toMillis(1);
+        long maxDelay = TimeUnit.HOURS.toMillis(3);
+        long delay = minDelay + (long) (Math.random() * (maxDelay - minDelay));
+        if (beaconSpawnRunnable == null) {
+            beaconSpawnRunnable = () -> {
+                spawnSnailBeacon();
+                scheduleBeaconSpawn();
+            };
+        }
+        beaconSpawnHandler.removeCallbacks(beaconSpawnRunnable);
+        beaconSpawnHandler.postDelayed(beaconSpawnRunnable, delay);
     }
 
     private void applyNightMapStyle() {
@@ -536,30 +541,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Zoom button setup
         ImageButton zoomFitButton = findViewById(R.id.zoomFitButton);
         zoomFitButton.setOnClickListener(v -> {
-            zoomOutToShowSnailButKeepPlayerCentered();
             if (mMap == null || currentPlayerLocation == null || snailPosition == null) {
                 Toast.makeText(this, "Waiting for locations...", Toast.LENGTH_SHORT).show();
                 return;
             }
-
-            LatLngBounds.Builder builder = new LatLngBounds.Builder();
-            builder.include(currentPlayerLocation);
-            builder.include(snailPosition);
-
-            LatLngBounds bounds = builder.build();
-
-            View mapView = getSupportFragmentManager().findFragmentById(R.id.map).getView();
-            if (mapView != null) {
-                mapView.post(() -> {
-                    int padding = 200; // Increase if needed
-                    try {
-                        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
-                    } catch (IllegalStateException e) {
-                        Log.e("ZoomFit", "Map size not ready for bounds, retrying...", e);
-                    }
-                });
-            }
-        });
+            isFollowingPlayer = true;
+            zoomOutToShowSnailButKeepPlayerCentered();
+                    });
 
 
 
@@ -701,8 +689,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
         if (playerPosition != null && snailPosition != null) {
-            spawnSnailBeacon(); // 💡 Only once per session for now
+            spawnSnailBeacon();
         }
+        spawnSnailBeacon();
         snailDistanceText = findViewById(R.id.snailDistanceText); // Ensure this ID exists
         snailTrailPoints = new ArrayList<>();
 
@@ -710,7 +699,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         currentSnailSpeedSetting = gameSettingsPrefs.getString("snailSpeed", "Normal Chase");
         String snailDistanceTextSetting = gameSettingsPrefs.getString("snailDistance", "Distant");
 
-        float snailMetersPerSecond = getSnailMetersPerSecond(currentSnailSpeedSetting);
+        float snailMetersPerSecond = getSnailMetersPerSecond(currentSnailSpeedSetting) * snailSpeedMultiplier;
         float snailMetersPerMillisecond = snailMetersPerSecond / 1000f;
         snailDegreesPerMillisecond = snailMetersPerMillisecond / 111_111f; // ~degrees/ms
 
@@ -1329,8 +1318,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (snailTrailPoints.size() > MAX_TRAIL_POINTS) snailTrailPoints.remove(0);
         if (snailTrail != null) snailTrail.setPoints(snailTrailPoints);
     }
-    private void boostSnailSpeed() {
-        snailSpeedMultiplier *= 1.3f; // Or directly increase the value
+    private void boostSnailSpeedTemporarily() {
+        snailSpeedMultiplier *= 2f;
+        snailSpeedBoostActive = true;
+        snailSpeedBoostEndTimeMs = System.currentTimeMillis() + TWENTY_FOUR_HOURS;
     }
     private void updatePowerUpUI() {
         TextView saltBombLabel = findViewById(R.id.saltBombLabel);
@@ -1473,6 +1464,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             updatePowerUpUI(); // if you have this method
 
             Log.d("GameState", "Loaded game + power-ups: Salt=" + saltBombCount + ", Shield=" + shellShieldCount);
+
+            // Determine how long the game was paused and move the snail
+            long elapsed = SystemClock.elapsedRealtime() - timePausedElapsedMillis;
+            if (elapsed > 0) {
+                recalculateSnailPositionAfterPause(elapsed);
+                clearGameStatePrefs();
+                startSnailChase();
+            }
         } else {
             Log.d("GameState", "No saved game state to load.");
         }
@@ -1952,15 +1951,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
 
-
-        float snailMetersPerSecond = getSnailMetersPerSecond(currentSnailSpeedSetting);
-        float snailMetersPerMillisecond = snailMetersPerSecond / 1000f;
-        final float snailMoveStepPerUpdate = snailMetersPerMillisecond * 250f / 111_111f; // 250ms tick converted to degrees
-
-
         snailHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
+                if (snailSpeedBoostActive && System.currentTimeMillis() > snailSpeedBoostEndTimeMs) {
+                    snailSpeedMultiplier /= 2f;
+                    snailSpeedBoostActive = false;
+                }
+                float snailMetersPerSecond = getSnailMetersPerSecond(currentSnailSpeedSetting) * snailSpeedMultiplier;
+                float snailMetersPerMillisecond = snailMetersPerSecond / 1000f;
+                float snailMoveStepPerUpdate = snailMetersPerMillisecond * updateIntervalMs / 111_111f;
                 LatLng target = isDecoyActive && SystemClock.elapsedRealtime() < decoyEndTimeMs
                         ? decoyPosition
                         : currentPlayerLocation;
@@ -2075,7 +2075,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d("RecalculateSnail", "Current player position: " + currentPlayerLocation);
 
         // Snail speed in degrees per MILLISECOND for this calculation
-        float snailMetersPerSecond = getSnailMetersPerSecond(currentSnailSpeedSetting);
+        float snailMetersPerSecond = getSnailMetersPerSecond(currentSnailSpeedSetting) * snailSpeedMultiplier;
         float snailMetersPerMillisecond = snailMetersPerSecond / 1000f;
         float snailDegreesPerMillisecond = snailMetersPerMillisecond / 111_111f;
 
@@ -2401,15 +2401,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         loadSelectedSnailSprite();
 
-        if (snailMarker != null && hasSpawnedSnail && snailPosition != null) {
-            // ✅ Save the snail's position
-            SharedPreferences.Editor gameStateEditor = getSharedPreferences("SnailGameState", MODE_PRIVATE).edit();
-            gameStateEditor.putString("snail_lat", String.valueOf(snailPosition.latitude));
-            gameStateEditor.putString("snail_lng", String.valueOf(snailPosition.longitude));
-            gameStateEditor.apply();
-            Log.d("onPause", "Saved snail position: " + snailPosition.latitude + ", " + snailPosition.longitude);
+        // Persist the full game state including player/snail positions and the
+        // current elapsed realtime value so we can properly resume later.
+        saveGameState();
 
-            updateSnailIcon(); // Optional: refresh the sprite
+        if (snailMarker != null && hasSpawnedSnail) {
+            updateSnailIcon(); // Optional: refresh the sprite icon while paused
         }
 
         LocalBroadcastManager.getInstance(this).registerReceiver(gameOverReceiver,

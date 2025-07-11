@@ -90,3 +90,5 @@ snailcoinglitch patch
     Snail coin counter fixed and cooldown timer added to snail repel
 
 persistentstate6
+
+SnailBeacon patch
