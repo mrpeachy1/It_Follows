@@ -1,0 +1,144 @@
+Index: app/src/main/res/layout/activity_maps.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/activity_maps.xml b/app/src/main/res/layout/activity_maps.xml
+--- a/app/src/main/res/layout/activity_maps.xml	
++++ b/app/src/main/res/layout/activity_maps.xml	(date 1751920914373)
+@@ -63,6 +63,7 @@
+         android:layout_marginTop="6dp"
+         android:layout_marginEnd="12dp"
+         android:layout_marginBottom="12dp"
++        android:elevation="1dp"
+         android:text="Inventory" />
+ 
+     <RelativeLayout
+@@ -263,6 +264,42 @@
+             android:text="Don't Look Away Game"
+             android:textColor="#FFFFFF" />
+     </LinearLayout>
+-
++    <LinearLayout
++        android:id="@+id/quitConfirmPanel"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:orientation="vertical"
++        android:background="#CC000000"
++        android:padding="24dp"
++        android:layout_gravity="center"
++        android:layout_alignParentTop="true"
++        android:layout_centerInParent="true"
++        android:elevation="20dp"
++        android:visibility="gone">
++
++        <TextView
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:text="Are you sure you want to quit?"
++            android:textColor="#FFFFFF"
++            android:textSize="18sp"
++            android:layout_gravity="center" />
++
++        <!-- ❌ No (now on top) -->
++        <Button
++            android:id="@+id/buttonQuitNo"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:text="No - Keep Playing"
++            android:layout_marginTop="12dp" />
++
++        <!-- ✅ Yes (now on bottom) -->
++        <Button
++            android:id="@+id/buttonQuitYes"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:text="Yes - Quit"
++            android:layout_marginTop="8dp" />
++    </LinearLayout>
+ </RelativeLayout>
+ 
+Index: app/src/main/java/com/example/itfollows/MainActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
+--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1751920055329)
+@@ -393,6 +393,16 @@
+         editor.apply();
+         updateCoinDisplay();
+     }
++    private void stopGameAndReturnToMenu() {
++        stopService(new Intent(this, GameService.class));
++
++        Intent intent = new Intent(this, MainMenuActivity.class);
++        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
++        startActivity(intent);
++
++        finish(); // This finishes the game screen safely
++    }
++
+ 
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {
+@@ -510,7 +520,22 @@
+                 Toast.makeText(this, "Not enough Snail Coins!", Toast.LENGTH_SHORT).show();
+             }
+         });
++        Button buttonQuitYes = findViewById(R.id.buttonQuitYes);
++        Button buttonQuitNo = findViewById(R.id.buttonQuitNo);
++
++        buttonQuitYes.setOnClickListener(v -> {
++            stopService(new Intent(this, GameService.class));
+ 
++            Intent intent = new Intent(this, MainMenuActivity.class);
++            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
++            startActivity(intent);
++            finish(); // Exit this activity
++        });
++
++        buttonQuitNo.setOnClickListener(v -> {
++            LinearLayout quitConfirmPanel = findViewById(R.id.quitConfirmPanel);
++            quitConfirmPanel.setVisibility(View.GONE);
++        });
+ 
+         // Zoom button setup
+         ImageButton zoomFitButton = findViewById(R.id.zoomFitButton);
+@@ -2374,9 +2399,16 @@
+ 
+     @Override
+     public void onBackPressed() {
+-        saveGameStateForContinue();  // Save necessary positions
+-        super.onBackPressed();       // Then proceed with default back behavior
++        LinearLayout quitConfirmPanel = findViewById(R.id.quitConfirmPanel);
++        if (quitConfirmPanel.getVisibility() == View.VISIBLE) {
++            quitConfirmPanel.setVisibility(View.GONE);
++        } else {
++            quitConfirmPanel.setVisibility(View.VISIBLE);
++        }
++        // Don’t call super.onBackPressed()
+     }
++
++
+     private void saveGameStateForContinue() {
+         if (playerPosition == null || snailPosition == null) return;
+ 
+Index: app/src/main/notes.txt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/notes.txt b/app/src/main/notes.txt
+--- a/app/src/main/notes.txt	
++++ b/app/src/main/notes.txt	(date 1751919475721)
+@@ -62,4 +62,5 @@
+ continuefix
+     ffinally fixed the continue button
+ 
+-crashfix1
+\ No newline at end of file
++backbtn patch
++    backbtn now ends game. no more continue option
+\ No newline at end of file

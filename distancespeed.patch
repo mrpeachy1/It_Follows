@@ -1,0 +1,17 @@
+Index: app/src/main/notes.txt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/notes.txt b/app/src/main/notes.txt
+--- a/app/src/main/notes.txt	
++++ b/app/src/main/notes.txt	(date 1751822427250)
+@@ -38,6 +38,7 @@
+     Night Mode	If local time is past 8PM, the map darkens, snail moves faster, whisper audio increases.
+     Snail Beacon	A mini glowing point appears on the map randomly. If you reach it, snail is pushed back. If the snail gets there first, it gains speed.
+ 
+-
++distancespeed patch
++    updated speed and starting distance of snail
+ 
+ 

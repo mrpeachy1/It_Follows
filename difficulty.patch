@@ -1,0 +1,233 @@
+Index: app/src/main/res/layout/activity_how_to_play.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/activity_how_to_play.xml b/app/src/main/res/layout/activity_how_to_play.xml
+--- a/app/src/main/res/layout/activity_how_to_play.xml	
++++ b/app/src/main/res/layout/activity_how_to_play.xml	(date 1751830291361)
+@@ -26,7 +26,33 @@
+             android:layout_marginTop="16dp"
+             android:textColor="#CCCCCC"
+             android:textSize="16sp"
+-            android:text="Run in real life to stay ahead of the snail.\n\nThe snail is always coming — slowly but surely.\nIt follows your GPS location and never stops.\n\nIf it catches you — you die.\n\nUse power-ups to survive a little longer, but they become less effective as the snail gets faster:\n\n🧂 Salt Bomb\nFreezes the snail in place for 15 seconds.\nEarned by surviving 3 minutes without getting closer.\n\n🐚 Decoy Shell\nDrops a fake player marker to lure the snail away.\nFound by visiting glowing decoy spots on the map.\n\n🛡 Shell Shield\nBlocks one collision — the snail passes through you.\nAwarded after gaining 75+ meters distance in under 2 minutes.\n\nGood luck.\nIt’s slow... but it never, ever stops."
++            android:text="Run in real life to stay ahead of the snail.\n\n
++The snail is always coming — slowly but surely.\n
++It follows your GPS location and never stops.\n\n
++If it catches you — you die.\n\n
++Use power-ups to survive a little longer,\n
++but they become less effective as the snail gets faster:\n\n
++🧂 Salt Bomb\n
++Freezes the snail in place for 15 seconds.\n
++Earned by surviving 3 minutes without getting closer.\n\n
++🐚 Decoy Shell\n
++Drops a fake player marker to lure the snail away.\n
++Found by visiting glowing decoy spots on the map.\n\n
++🛡 Shell Shield\n
++Blocks one collision — the snail passes through you.\n
++Awarded after gaining 75+ meters distance in under 2 minutes.\n\n
++But beware... the snail evolves.\n\n
++Every few minutes, it may unleash a new behavior:\n\n
++🫥 Vanish\n
++The snail disappears from the map temporarily.\n\n
++🎭 Fake Snail\n
++It spawns a false marker to mislead you.\n\n
++⚡ Teleport\n
++It jumps forward a short distance without warning.\n\n
++Good luck.\n
++It’s slow…\n
++…but it never, ever stops."
++
+             />
+ 
+         <Button
+Index: app/src/main/java/com/example/itfollows/MainActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
+--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1751830554033)
+@@ -169,6 +169,13 @@
+     private boolean isDecoyShellActive;
+     private float snailDegreesPerTick = 0f;
+     private float snailDegreesPerMillisecond = 0f;
++    private Handler snailAbilityHandler = new Handler();
++    private Runnable snailAbilityRunnable;
++    private final long ABILITY_INTERVAL_MS = 3 * 60 * 1000; // Every 3 minutes
++
++    private Marker fakeSnailMarker;
++    private boolean snailInvisible = false;
++
+ 
+     private void updateSnailIcon() {
+         // Implement the logic to update the snail's icon here.
+@@ -710,6 +717,10 @@
+     }
+ 
+     private void spawnSnailAndStartGame() { // Renamed from spawnSnail
++        spawnSnailAtRandomLocation();
++        startSnailChase();
++        startSnailAbilityCycle(); // 👈 Add this
++
+         if (currentPlayerLocation == null || mMap == null) {
+             Log.e(TAG_MAIN_ACTIVITY, "Cannot spawn snail, player location or map is null.");
+             Toast.makeText(this, "Waiting for current location to spawn snail...", Toast.LENGTH_SHORT).show();
+@@ -972,8 +983,8 @@
+                 return 0.6f;
+             case "Olympic Sprinting Snail":    // ~10.4 m/s
+                 return 0.4f;
+-            case "Snail Drives Car":           // ~40 m/s
+-                return 0.2f;
++            case "Snail Drives Car":           // ~20 m/s
++                return 0.18f;
+             default:
+                 return 1.0f;
+         }
+@@ -2227,6 +2238,88 @@
+         startActivity(new Intent(this, MainMenuActivity.class));
+         finish(); // don't let MainActivity linger in the stack
+     }
++    private void startSnailAbilityCycle() {
++        snailAbilityRunnable = new Runnable() {
++            @Override
++            public void run() {
++                triggerRandomSnailAbility();
++                snailAbilityHandler.postDelayed(this, ABILITY_INTERVAL_MS);
++            }
++        };
++        snailAbilityHandler.postDelayed(snailAbilityRunnable, ABILITY_INTERVAL_MS);
++    }
++    private void triggerRandomSnailAbility() {
++        Random rand = new Random();
++        int abilityIndex = rand.nextInt(3); // 0 = teleport, 1 = decoy, 2 = vanish
++
++        switch (abilityIndex) {
++            case 0:
++                teleportSnailRandomly();
++                break;
++            case 1:
++                spawnFakeSnail();
++                break;
++            case 2:
++                vanishSnailTemporarily();
++                break;
++        }
++    }
++    private void teleportSnailRandomly() {
++        if (snailPosition == null) return;
++
++        Random rand = new Random();
++        double meters = 40 + rand.nextInt(21); // 40–60 meters
++        double angle = rand.nextDouble() * 2 * Math.PI;
++
++        double latOffset = metersToLatitudeDegrees(meters * Math.sin(angle));
++        double lngOffset = metersToLongitudeDegrees(meters * Math.cos(angle), snailPosition.latitude);
++
++        snailPosition = new LatLng(snailPosition.latitude + latOffset, snailPosition.longitude + lngOffset);
++        if (snailMarker != null) snailMarker.setPosition(snailPosition);
++        Toast.makeText(this, "The snail teleported...", Toast.LENGTH_SHORT).show();
++    }
++    private void spawnFakeSnail() {
++        if (playerPosition == null || mMap == null) return;
++
++        Random rand = new Random();
++        double meters = 60 + rand.nextInt(41); // 60–100 meters
++        double angle = rand.nextDouble() * 2 * Math.PI;
++
++        double latOffset = metersToLatitudeDegrees(meters * Math.sin(angle));
++        double lngOffset = metersToLongitudeDegrees(meters * Math.cos(angle), playerPosition.latitude);
++
++        LatLng fakePosition = new LatLng(playerPosition.latitude + latOffset, playerPosition.longitude + lngOffset);
++
++        if (fakeSnailMarker != null) fakeSnailMarker.remove();
++        fakeSnailMarker = mMap.addMarker(new MarkerOptions()
++                .position(fakePosition)
++                .title("??")
++                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
++
++        Toast.makeText(this, "A fake snail appeared...", Toast.LENGTH_SHORT).show();
++
++        // Remove after 60s
++        new Handler().postDelayed(() -> {
++            if (fakeSnailMarker != null) {
++                fakeSnailMarker.remove();
++                fakeSnailMarker = null;
++            }
++        }, 60000);
++    }
++    private void vanishSnailTemporarily() {
++        if (snailMarker == null) return;
++
++        snailMarker.setVisible(false);
++        snailInvisible = true;
++
++        Toast.makeText(this, "The snail has vanished...", Toast.LENGTH_SHORT).show();
++
++        new Handler().postDelayed(() -> {
++            if (snailMarker != null) snailMarker.setVisible(true);
++            snailInvisible = false;
++            Toast.makeText(this, "The snail reappeared...", Toast.LENGTH_SHORT).show();
++        }, 20000); // 20 seconds
++    }
+ 
+     // Inside MainActivity.java
+     @Override
+Index: app/src/main/notes.txt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/notes.txt b/app/src/main/notes.txt
+--- a/app/src/main/notes.txt	
++++ b/app/src/main/notes.txt	(date 1751829737456)
+@@ -43,3 +43,8 @@
+ 
+ difficulty patch
+     had the effectiveness of powerups increase with difficulty
++    Snail Abilities / Enemy Behavior
++    "Snail Teleport" Power: After 10 minutes, snail has a 1% chance every tick to appear closer.
++    "Snail Splits" Clone Event: Randomly generates a fake snail marker to confuse the player.
++    Snail Mutation at night: Different sprite or behavior after midnight.
++    updated "How to Play"
+\ No newline at end of file
+Index: app/build/generated/res/processDebugGoogleServices/values/values.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/build/generated/res/processDebugGoogleServices/values/values.xml b/app/build/generated/res/processDebugGoogleServices/values/values.xml
+new file mode 100644
+--- /dev/null	(date 1751830292328)
++++ b/app/build/generated/res/processDebugGoogleServices/values/values.xml	(date 1751830292328)
+@@ -0,0 +1,9 @@
++<?xml version="1.0" encoding="utf-8"?>
++<resources>
++    <string name="gcm_defaultSenderId" translatable="false">398767941420</string>
++    <string name="google_api_key" translatable="false">AIzaSyDwRq5OQsVRzJQktyjzQsZp5qdvxSGlp8U</string>
++    <string name="google_app_id" translatable="false">1:398767941420:android:17babcc74f5ffcdba26e89</string>
++    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyDwRq5OQsVRzJQktyjzQsZp5qdvxSGlp8U</string>
++    <string name="google_storage_bucket" translatable="false">it-follows-b9be6.firebasestorage.app</string>
++    <string name="project_id" translatable="false">it-follows-b9be6</string>
++</resources>
+Index: app/build/generated/res/injectCrashlyticsMappingFileIdDebug/values/com_google_firebase_crashlytics_mappingfileid.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/build/generated/res/injectCrashlyticsMappingFileIdDebug/values/com_google_firebase_crashlytics_mappingfileid.xml b/app/build/generated/res/injectCrashlyticsMappingFileIdDebug/values/com_google_firebase_crashlytics_mappingfileid.xml
+new file mode 100644
+--- /dev/null	(date 1751830292320)
++++ b/app/build/generated/res/injectCrashlyticsMappingFileIdDebug/values/com_google_firebase_crashlytics_mappingfileid.xml	(date 1751830292320)
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<resources xmlns:tools="http://schemas.android.com/tools">
++<!--
++  This file is automatically generated by Crashlytics to uniquely 
++  identify the mapping file for your Android application.
++
++  Do NOT modify or commit to source control!
++-->
++<string name="com.google.firebase.crashlytics.mapping_file_id" tools:ignore="UnusedResources,TypographyDashes" translatable="false">00000000000000000000000000000000</string>
++</resources>

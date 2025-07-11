@@ -1,0 +1,92 @@
+vibration patch
+    fixed vibration notification when playing minigames
+    lowered "dont let go" on the gamescreen
+
+shieldfix patch
+    fixed issue where the snail would not resume chase after it hit the player and was pushed back
+
+cameraupdate patch1
+    fixed the map function ZoomLevel so that the player is always centered on the map
+        made more of the snail visible when i press ZoomLevel
+    made sure the camera follows the player and centers it unless the player moves the screen
+
+snailposition patch
+    fixed issuue where snail would reposition itsselff closer to the player when the player moved too far away
+
+continuebtn patch
+    made the menu open as a non-blocking overlay, or show a message like “⏳ The snail is still hunting you...”
+    added continue button to resume the game and close the menu when the player presses back on the phone
+    🐌 Continue Functionality Added
+    ✅ Main Menu UI:
+        Added Continue button and snailWarningText to activity_main_menu.xml.
+        Button appears only if a saved game state exists (based on SharedPreferences).
+    ✅ Game State Load:
+        Checks for keys like snail_lat_before_pause and player_lat_before_pause.
+        If found, displays Continue and warning text.
+    ✅ Click Behavior:
+        Continue passes intent.putExtra("isNewGame", false) to MainActivity.
+        💾 Game State Save / Load
+    ✅ SharedPreferences Save:
+        Saves snail/player positions, power-up counts, time paused, etc.
+        ✅ loadGameState():
+        Loads:        Snail position       Playr position        Elapsed game time Power-up inventory (saltBomb, shellShield, decoyShell) Ensured it defers displaying player marker until GPS provides fresh data.
+        🔥 Startup Logic in MainActivity.java
+    🔁 On game start:
+        Checks isNewGame intent extra.    If true: Clears saved state, spawns new snail, starts new game.   If false: Loads saved state, resumes game from previous positions, resumes snail chase.   ⛔ Also clears saved state unconditionally later in onCreate — this was flagged for potential removal if restoring a saved game. (Could break Continue logic.)
+
+feature2 patch
+    Night Mode	If local time is past 8PM, the map darkens, snail moves faster, whisper audio increases.
+    Snail Beacon	A mini glowing point appears on the map randomly. If you reach it, snail is pfushed back. If the snail gets there first, it gains speed.
+
+distancespeed1 patch
+    updated speed and starting distance of snail
+
+difficulty patch
+    had the effectiveness of powerups increase with difficulty
+    Snail Abilities / Enemy Behavior
+    "Snail Teleport" Power: After 10 minutes, snail has a 1% chance every tick to appear closer.
+    "Snail Splits" Clone Event: Randomly generates a fake snail marker to confuse the player.
+    Snail Mutation at night: Different sprite or behavior after midnight.
+    updated "How to Play"
+
+paymechanic patch
+    added shop feature
+    fixed the max number in inventory
+    fixed fake snail to use actual snail
+    removed rewards for getting powerupse
+    updated private float getSnailMoveStepDegreesFromSetting(String speedLabel) { based on the news speeds we made
+
+inventoryfix
+    finally fixed inventory reset
+
+continuefix
+    ffinally fixed the continue button
+
+backbtn patch
+    backbtn now ends game. no more continue option
+
+persistentstate patch
+    attempted 2 to ensure game does not reset whhen the player loads thhe game after minimized
+
+settingsbackground
+    fixed zoomFitButton to show snail further away when zoomed in
+    background pictture with fade applied
+
+Undid0708251736 patch
+
+zoomFitButton patch
+    fixed
+
+persistentstate3 patch
+    attempt 3
+
+Suggestions1
+    added snail repel in store
+
+persistentstate4/5 patch
+        attempt 4
+
+snailcoinglitch patch
+    Snail coin counter fixed and cooldown timer added to snail repel
+
+persistentstate6

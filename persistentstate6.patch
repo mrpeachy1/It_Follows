@@ -1,0 +1,62 @@
+Index: app/src/main/java/com/example/itfollows/MainActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
+--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1752178719271)
+@@ -395,11 +395,17 @@
+         super.onCreate(savedInstanceState);
+         setContentView(R.layout.activity_maps);
+         SharedPreferences statePrefs = getSharedPreferences("SnailGameState", MODE_PRIVATE);
+-        boolean hasSavedSnail = statePrefs.contains("snail_lat") && statePrefs.contains("snail_lng");
++        boolean hasSavedSnail = statePrefs.contains("snail_lat") && statePrefs.contains("player_lat");
+         boolean isNewGame = getIntent().getBooleanExtra("isNewGame", false); // safer default
++
+         Log.d("MainActivity", "isNewGame = " + isNewGame);
+         Log.d("MainActivity", "hasSavedSnail = " + hasSavedSnail);
+-
++        if (!hasSavedSnail) {
++            Log.d("MainActivity", "No saved state found. Proceeding with isNewGame = " + isNewGame);
++        } else {
++            Log.d("MainActivity", "Saved snail state detected. Forcing isNewGame = false");
++            isNewGame = false; // 👈 OVERRIDE to prevent false reset
++        }
+         if (isNewGame || !hasSavedSnail) {
+             // Fresh game setup
+             statePrefs.edit().clear().apply();
+@@ -429,7 +435,14 @@
+ 
+         // 🔥 Clear any previous saved game state to force a fresh game
+         if (isNewGame) {
+-            getSharedPreferences("SnailGameState", MODE_PRIVATE).edit().clear().apply();
++            Log.d("MainActivity", "Truly new game, clearing state...");
++            statePrefs.edit().clear().apply(); // Clear saved state
++            getSharedPreferences("PowerUpInventory", MODE_PRIVATE).edit().clear().apply();
++            resetLocalGameState(); // if you use this method
++            spawnSnailAtRandomLocation(); // your spawn logic
++        } else {
++            loadGameState(); // resume snail + player
++            startSnailChase(); // resume movement logic
+         }
+ 
+         snailCoinBalance = getSharedPreferences("SnailGameState", MODE_PRIVATE)
+Index: app/src/main/notes.txt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/notes.txt b/app/src/main/notes.txt
+--- a/app/src/main/notes.txt	
++++ b/app/src/main/notes.txt	(date 1752180206847)
+@@ -87,4 +87,6 @@
+         attempt 4
+ 
+ snailcoinglitch patch
+-    Snail coin counter fixed and cooldown timer added to snail repel
+\ No newline at end of file
++    Snail coin counter fixed and cooldown timer added to snail repel
++
++persistentstate6
+\ No newline at end of file

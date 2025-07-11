@@ -1,0 +1,28 @@
+Index: app/src/main/java/com/example/itfollows/MainActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
+--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1751812864664)
+@@ -1388,12 +1388,14 @@
+                 if (distanceToPlayerMeters < gameOverDistanceMeters) {
+                     if (isShieldActive) {
+                         isShieldActive = false;
+-                        Toast.makeText(MainActivity.this, "Shell Shield blocked the hit! 🛡️", Toast.LENGTH_LONG).show();
+-                        pushSnailBack(50); // You can reuse this or revive logic
+-                        updatePowerUpUI();
+-                        return; // Prevent game over
++                        Toast.makeText(MainActivity.this, "Shell Shield blocked the hit!", Toast.LENGTH_SHORT).show();
++
++                        pushSnailBack(30);  // Push the snail back 30 meters
++                        startSnailChase();  // Resume chase loop
++                        return;             // Skip the rest of this tick
+                     } else {
+-                        triggerGameOver(SystemClock.elapsedRealtime() - gameStartTimeElapsedMillis, totalSnailDistanceMeters, "Snail caught you!");
++                        long timeTaken = SystemClock.elapsedRealtime() - gameStartTimeElapsedMillis;
++                        triggerGameOver(timeTaken, totalSnailDistanceMeters, "The snail caught you!");
+                         return;
+                     }
+                 }

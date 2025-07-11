@@ -1,0 +1,17 @@
+Index: app/src/main/java/com/example/itfollows/SettingsActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/itfollows/SettingsActivity.java b/app/src/main/java/com/example/itfollows/SettingsActivity.java
+--- a/app/src/main/java/com/example/itfollows/SettingsActivity.java	
++++ b/app/src/main/java/com/example/itfollows/SettingsActivity.java	(date 1751748797139)
+@@ -95,7 +95,7 @@
+             }
+ 
+             spriteItem.setOnClickListener(v -> {
+-                currentSelectedSpriteIdentifier = sprite.identifier();
++                currentSelectedSpriteIdentifier = sprite.identifier;
+ 
+                 // Hide all indicators first
+                 for (int i = 0; i < snailSpriteContainer.getChildCount(); i++) {

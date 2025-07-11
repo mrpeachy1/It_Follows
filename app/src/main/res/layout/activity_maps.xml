@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:map="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/my_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <!-- Google Map Fragment -->
+
+    <fragment
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <TextView
+        android:id="@+id/snailDistanceText"
+        android:layout_width="106dp"
+        android:layout_height="wrap_content"
+
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="140dp"
+        android:layout_marginTop="90dp"
+        android:layout_marginEnd="140dp"
+        android:layout_marginBottom="500dp"
+        android:background="#80000000"
+        android:padding="6dp"
+        android:text="Snail: -- m"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp" />
+
+
+    <ImageButton
+        android:id="@+id/zoomFitButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="17dp"
+        android:layout_marginLeft="17dp"
+        android:layout_marginTop="72dp"
+        android:layout_marginEnd="14dp"
+        android:layout_marginRight="17dp"
+        android:layout_marginBottom="17dp"
+        android:background="@drawable/zoom_button_background"
+        android:backgroundTint="#AA000000"
+        android:contentDescription="Zoom to snail and player"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_zoom_snail"
+        map:tint="#FFFFFF" />
+
+    <Button
+        android:id="@+id/inventoryButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="225dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="12dp"
+        android:elevation="1dp"
+        android:text="Inventory" />
+
+    <RelativeLayout
+        android:id="@+id/inventoryPanel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        tools:visibility="visible"
+        android:visibility="gone"
+        android:background="#FEFFFE"
+        android:padding="16dp">
+
+    <!-- 🧊 Salt Bomb -->
+    <TextView
+        android:id="@+id/saltBombLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🧊 Salt Bomb (x0)"
+        android:textColor="#000000"
+        android:textSize="18sp" />
+
+
+    <!-- If you want them, add them back like in your standalone inventory_panel.xml -->
+    <TextView
+        android:id="@+id/saltBombDesc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/saltBombLabel"
+        android:text="0"
+        android:textColor="#000000"
+        android:textSize="0dp"
+        android:layout_marginTop="2dp"/>
+
+    <Button
+        android:id="@+id/useSaltBombBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/saltBombDesc"     android:text="Use"
+        android:layout_marginTop="6dp" />
+
+    <!-- 🌀 Decoy Shell -->
+    <TextView
+        android:id="@+id/decoyLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/useSaltBombBtn"
+        android:text="🌀 Decoy Shell (x0)"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:id="@+id/decoyDesc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/decoyLabel"
+        android:text=""
+        android:textColor="#000000"
+        android:textSize="0dp"
+        android:layout_marginTop="2dp"/>
+
+    <Button
+        android:id="@+id/useDecoyBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/decoyDesc"
+        android:text="Use"
+        android:layout_marginTop="6dp" />
+
+    <!-- 🛡️ Shell Shield -->
+    <TextView
+        android:id="@+id/shieldLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/useDecoyBtn"
+        android:text="🛡️ Shell Shield (x0)"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:id="@+id/shieldDesc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/shieldLabel"
+        android:text=""
+        android:textColor="#000000"
+        android:textSize="0dp"
+        android:layout_marginTop="2dp"/>
+
+    <Button
+        android:id="@+id/useShieldBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/shieldDesc"
+        android:text="Use"
+        android:layout_marginTop="6dp" />
+    </RelativeLayout>
+
+    <ImageButton
+        android:id="@+id/shopToggleButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/ic_shop"
+        android:background="@null"
+        android:layout_gravity="end"
+        android:layout_margin="16dp"
+        android:contentDescription="Open Shop" />
+
+    <LinearLayout
+        android:id="@+id/shopPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#CC000000"
+        android:padding="16dp"
+        android:layout_marginTop="100dp"
+        android:visibility="gone"
+        android:layout_gravity="bottom">
+
+        <TextView
+            android:id="@+id/coinBalanceText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="💰 Snail Coins: 1,000,000"
+            android:textColor="#FFFF66"
+            android:textSize="18sp"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/buySaltBombBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🧂 Buy Salt Bomb (5,000)"
+            android:background="@drawable/button_translucent_bg"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/buyDecoyBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🐚 Buy Decoy Shell (7,500)"
+            android:background="@drawable/button_translucent_bg"
+            android:textColor="#FFFFFF"
+            android:layout_marginTop="8dp" />
+
+        <Button
+            android:id="@+id/buyShieldBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🛡 Buy Shell Shield (10,000)"
+            android:background="@drawable/button_translucent_bg"
+            android:textColor="#FFFFFF"
+            android:layout_marginTop="8dp" />
+        <!-- 🧲 Snail Repel Section -->
+        <TextView
+            android:id="@+id/repelLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🧲 Snail Repel"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:layout_marginTop="12dp" />
+
+        <LinearLayout
+            android:id="@+id/repelControlRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical">
+
+            <Button
+                android:id="@+id/decreaseRepelBtn"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:text="-" />
+
+            <TextView
+                android:id="@+id/repelDistanceText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="12dp"
+                android:text="100m"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/increaseRepelBtn"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:text="+" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/repelCostText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="$60,000"
+            android:textColor="#FFFF66"
+            android:textSize="16sp"
+            android:layout_marginTop="4dp" />
+        <TextView
+            android:id="@+id/repelCooldownText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FF8888"
+            android:textSize="14sp"
+            android:layout_marginTop="4dp"
+            android:visibility="gone"
+            android:text="Cooldown: 23h 59m left" />
+        <Button
+            android:id="@+id/buyRepelBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Buy Snail Repel"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/button_translucent_bg"
+            android:layout_marginTop="6dp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/minigameMenuPanel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_gravity="top|end"
+        android:layout_margin="16dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginBottom="14dp"
+        android:background="#DD000000"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:visibility="visible"> <!-- Set to 'gone' later -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="🧪 Minigame Test Menu"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/playSlimeGameBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Play Slime Game" />
+
+        <Button
+            android:id="@+id/playCoinFlipBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Play Coin Flip" />
+
+        <Button
+            android:id="@+id/playHoldMinigameBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Don't Look Away Game"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/quitConfirmPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#CC000000"
+        android:padding="24dp"
+        android:layout_gravity="center"
+        android:layout_alignParentTop="true"
+        android:layout_centerInParent="true"
+        android:elevation="20dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Are you sure you want to quit?"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:layout_gravity="center" />
+
+        <!-- ❌ No (now on top) -->
+        <Button
+            android:id="@+id/buttonQuitNo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="No - Keep Playing"
+            android:layout_marginTop="12dp" />
+
+        <!-- ✅ Yes (now on bottom) -->
+        <Button
+            android:id="@+id/buttonQuitYes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Yes - Quit"
+            android:layout_marginTop="8dp" />
+    </LinearLayout>
+</RelativeLayout>
+

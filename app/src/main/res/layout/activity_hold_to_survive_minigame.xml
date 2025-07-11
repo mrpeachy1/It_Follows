@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/holdLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#111">
+
+    <ImageView
+        android:id="@+id/snailFadeImage"
+        android:layout_width="660dp"
+        android:layout_height="1082dp"
+        android:layout_gravity="center"
+        android:alpha="0.0"
+        android:src="@drawable/snail_face" />
+
+    <TextView
+        android:id="@+id/snailPromptText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="24dp"
+        android:gravity="center"
+        android:text="The snail stares into your soul. Don’t break eye contact."
+        android:textAlignment="center"
+        android:textColor="#FFFFFF"
+        android:textSize="30sp" />
+
+    <TextView
+        android:id="@+id/holdMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Don't let go..."
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="50dp"
+        android:textSize="24sp"
+        android:layout_gravity="center" />
+
+    <ProgressBar
+        android:id="@+id/holdProgressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="50dp"
+        android:indeterminate="false"
+        android:max="100"
+        android:progress="0"
+        android:progressDrawable="@android:drawable/progress_horizontal" />
+</FrameLayout>

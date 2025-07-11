@@ -1,0 +1,28 @@
+Index: app/src/main/java/com/example/itfollows/MainActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
+--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1752068809482)
+@@ -1,5 +1,7 @@
+ package com.example.itfollows;
+ 
++import static com.example.itfollows.GameManager.isNewGame;
++
+ import android.Manifest;
+ import java.util.Calendar;
+ import android.annotation.SuppressLint;
+@@ -2136,6 +2138,11 @@
+             }
+         });
+         checkAndActivateNightMode();
++        if (snailPosition != null) {
++            updateSnailMarker(); // restore snail
++        } else if (isNewGame) {
++            spawnSnailAtRandomLocation();
++        }
+         // mMap.getUiSettings().setCompassEnabled(true); // Optional: show compass
+         if (snailPosition != null && snailMarker == null) {
+             Log.d("SnailDebug", "Recreating snail marker at: " + snailPosition);

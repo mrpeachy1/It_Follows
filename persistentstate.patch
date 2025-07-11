@@ -1,0 +1,113 @@
+Index: app/src/main/java/com/example/itfollows/GameService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/itfollows/GameService.java b/app/src/main/java/com/example/itfollows/GameService.java
+--- a/app/src/main/java/com/example/itfollows/GameService.java	
++++ b/app/src/main/java/com/example/itfollows/GameService.java	(date 1751979072798)
+@@ -124,7 +124,7 @@
+             startGameLoop();
+             saveGameState(); // Save that the game is now running
+         }
+-        return START_STICKY;
++        return START_NOT_STICKY;
+     }
+ 
+     private void startGameLoop() {
+Index: app/src/main/java/com/example/itfollows/MainActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
+--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1751978998706)
+@@ -409,22 +409,21 @@
+         super.onCreate(savedInstanceState);
+         setContentView(R.layout.activity_maps);
+ 
+-        boolean isNewGame = getIntent().getBooleanExtra("isNewGame", true);
++        boolean isNewGame = getIntent().getBooleanExtra("isNewGame", false); // safer default
+         Log.d("MainActivity", "isNewGame = " + isNewGame);
+ 
+         if (isNewGame) {
+-            // Clear power-ups on new game
+             SharedPreferences powerUpPrefs = getSharedPreferences("PowerUpInventory", MODE_PRIVATE);
+-            SharedPreferences.Editor powerUpEditor = powerUpPrefs.edit();
+-            powerUpEditor.clear();
+-            powerUpEditor.apply();
++            powerUpPrefs.edit().clear().apply();
++
++            getSharedPreferences("SnailGameState", MODE_PRIVATE).edit().clear().apply();
+ 
+             resetLocalGameState();
+             spawnSnailAtRandomLocation();
+-            Log.d("MainActivity", "Power-up inventory cleared for new game.");
++            Log.d("MainActivity", "New game: inventory and state cleared");
+         } else {
+-            loadGameState();               // Load from saved prefs
+-            startSnailChase();             // Resume snail logic
++            loadGameState();
++            startSnailChase();
+         }
+         powerUpPrefs = getSharedPreferences("PowerUpInventory", MODE_PRIVATE);
+         powerUpEditor = powerUpPrefs.edit();
+Index: app/src/main/notes.txt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/notes.txt b/app/src/main/notes.txt
+--- a/app/src/main/notes.txt	
++++ b/app/src/main/notes.txt	(date 1751979160626)
+@@ -63,4 +63,7 @@
+     ffinally fixed the continue button
+ 
+ backbtn patch
+-    backbtn now ends game. no more continue option
+\ No newline at end of file
++    backbtn now ends game. no more continue option
++
++persistentstate patch
++    attempted 2 to ensure game does not reset whhen the player loads thhe game after minimized
+\ No newline at end of file
+Index: app/build/generated/res/processDebugGoogleServices/values/values.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/build/generated/res/processDebugGoogleServices/values/values.xml b/app/build/generated/res/processDebugGoogleServices/values/values.xml
+new file mode 100644
+--- /dev/null	(date 1751921535718)
++++ b/app/build/generated/res/processDebugGoogleServices/values/values.xml	(date 1751921535718)
+@@ -0,0 +1,9 @@
++<?xml version="1.0" encoding="utf-8"?>
++<resources>
++    <string name="gcm_defaultSenderId" translatable="false">398767941420</string>
++    <string name="google_api_key" translatable="false">AIzaSyDwRq5OQsVRzJQktyjzQsZp5qdvxSGlp8U</string>
++    <string name="google_app_id" translatable="false">1:398767941420:android:17babcc74f5ffcdba26e89</string>
++    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyDwRq5OQsVRzJQktyjzQsZp5qdvxSGlp8U</string>
++    <string name="google_storage_bucket" translatable="false">it-follows-b9be6.firebasestorage.app</string>
++    <string name="project_id" translatable="false">it-follows-b9be6</string>
++</resources>
+Index: app/build/generated/res/injectCrashlyticsMappingFileIdDebug/values/com_google_firebase_crashlytics_mappingfileid.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/build/generated/res/injectCrashlyticsMappingFileIdDebug/values/com_google_firebase_crashlytics_mappingfileid.xml b/app/build/generated/res/injectCrashlyticsMappingFileIdDebug/values/com_google_firebase_crashlytics_mappingfileid.xml
+new file mode 100644
+--- /dev/null	(date 1751921535708)
++++ b/app/build/generated/res/injectCrashlyticsMappingFileIdDebug/values/com_google_firebase_crashlytics_mappingfileid.xml	(date 1751921535708)
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<resources xmlns:tools="http://schemas.android.com/tools">
++<!--
++  This file is automatically generated by Crashlytics to uniquely 
++  identify the mapping file for your Android application.
++
++  Do NOT modify or commit to source control!
++-->
++<string name="com.google.firebase.crashlytics.mapping_file_id" tools:ignore="UnusedResources,TypographyDashes" translatable="false">00000000000000000000000000000000</string>
++</resources>

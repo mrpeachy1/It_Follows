@@ -1,0 +1,93 @@
+Index: app/src/main/java/com/example/itfollows/MainActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
+--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1751814373510)
+@@ -71,6 +71,8 @@
+     private static final long TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000L;
+     private static final int REQUEST_CODE_HOLD = 444;
+     private GoogleMap mMap;
++    private boolean isFollowingPlayer = true;
++
+     private static final String MINIGAME_PREFS = "MinigamePrefs";
+     private static final String KEY_LAST_PLAYED_DATE = "LastPlayedDate";
+     private static final String KEY_TODAYS_TRIGGER_TIME = "TodaysTriggerTime";
+@@ -252,6 +254,11 @@
+         Location.distanceBetween(lat1, lng1, lat2, lng2, results);
+         return results[0]; // distance in meters
+     }
++    private LatLng biasTowardPlayer(LatLng player, LatLng snail, double bias) {
++        double lat = player.latitude * bias + snail.latitude * (1 - bias);
++        double lng = player.longitude * bias + snail.longitude * (1 - bias);
++        return new LatLng(lat, lng);
++    }
+ 
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {
+@@ -1286,12 +1293,16 @@
+                             startSnailChase();
+                         }
+                     }
+-                    if (mMap != null && !hasCenteredOnce && currentPlayerLocation != null) {
+-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPlayerLocation, 18f));
+-                        hasCenteredOnce = true;
++                    if (mMap != null && currentPlayerLocation != null) {
++                        if (isFollowingPlayer) {
++                            mMap.animateCamera(CameraUpdateFactory.newLatLng(currentPlayerLocation));
++                        }
++
++                        if (!hasCenteredOnce) {
++                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPlayerLocation, 18f));
++                            hasCenteredOnce = true;
++                        }
+                     }
+-                    // Update player position for pause state if needed (though onPause is more direct)
+-                    // playerPositionBeforePause = currentPlayerLocation; // Keep this updated
+                 }
+             }
+         };
+@@ -1742,6 +1753,11 @@
+     public void onMapReady(@NonNull GoogleMap googleMap) {
+         mMap = googleMap;
+         mMap.getUiSettings().setZoomControlsEnabled(true);
++        mMap.setOnCameraMoveStartedListener(reason -> {
++            if (reason == GoogleMap.OnCameraMoveStartedListener.REASON_GESTURE) {
++                isFollowingPlayer = false;
++            }
++        });
+         // mMap.getUiSettings().setCompassEnabled(true); // Optional: show compass
+         if (snailPosition != null && snailMarker == null) {
+             Log.d("SnailDebug", "Recreating snail marker at: " + snailPosition);
+Index: cameraupdate.patch
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/cameraupdate.patch b/cameraupdate.patch
+new file mode 100644
+--- /dev/null	(date 1751814080427)
++++ b/cameraupdate.patch	(date 1751814080427)
+@@ -0,0 +1,20 @@
++Index: app/src/main/java/com/example/itfollows/MainActivity.java
++IDEA additional info:
++Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
++<+>UTF-8
++===================================================================
++diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
++--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
+++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1751814020885)
++@@ -252,6 +252,11 @@
++         Location.distanceBetween(lat1, lng1, lat2, lng2, results);
++         return results[0]; // distance in meters
++     }
+++    private LatLng biasTowardPlayer(LatLng player, LatLng snail, double bias) {
+++        double lat = player.latitude * bias + snail.latitude * (1 - bias);
+++        double lng = player.longitude * bias + snail.longitude * (1 - bias);
+++        return new LatLng(lat, lng);
+++    }
++ 
++     @Override
++     protected void onCreate(Bundle savedInstanceState) {

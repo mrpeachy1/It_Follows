@@ -1,0 +1,286 @@
+Index: app/src/main/java/com/example/itfollows/MainActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
+--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1751815735735)
+@@ -71,6 +71,8 @@
+     private static final long TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000L;
+     private static final int REQUEST_CODE_HOLD = 444;
+     private GoogleMap mMap;
++    private boolean isFollowingPlayer = true;
++
+     private static final String MINIGAME_PREFS = "MinigamePrefs";
+     private static final String KEY_LAST_PLAYED_DATE = "LastPlayedDate";
+     private static final String KEY_TODAYS_TRIGGER_TIME = "TodaysTriggerTime";
+@@ -252,6 +254,11 @@
+         Location.distanceBetween(lat1, lng1, lat2, lng2, results);
+         return results[0]; // distance in meters
+     }
++    private LatLng biasTowardPlayer(LatLng player, LatLng snail, double bias) {
++        double lat = player.latitude * bias + snail.latitude * (1 - bias);
++        double lng = player.longitude * bias + snail.longitude * (1 - bias);
++        return new LatLng(lat, lng);
++    }
+ 
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {
+@@ -1132,6 +1139,15 @@
+             return; // Nothing to update or map not ready
+ 
+         }
++        SharedPreferences prefs = getSharedPreferences("SnailGameState", MODE_PRIVATE);
++        if (prefs.contains("snail_lat") && prefs.contains("snail_lng")) {
++            double lat = Double.parseDouble(prefs.getString("snail_lat", ""));
++            double lng = Double.parseDouble(prefs.getString("snail_lng", ""));
++            snailPosition = new LatLng(lat, lng);
++            hasSpawnedSnail = true;
++            Log.d("onCreate", "Restored snail from saved state at: " + lat + ", " + lng);
++        }
++
+         Log.d("MainActivity_UpdateIcon", "Attempting to update snail icon on resume. Current loaded identifier: '" + loadedSnailSpriteIdentifier + "'");
+ 
+         // Ensure the latest preference is loaded
+@@ -1271,27 +1287,24 @@
+                     if (mMap != null && !hasSpawnedSnail && mMap.getMyLocation() != null && currentPlayerLocation != null) {
+                         // If resuming from a killed state and game state was loaded, snail might already be "spawned" conceptually
+                         // Check if snailPosition is already set from loaded state
+-                        if (snailPositionBeforePause != null && timePausedElapsedMillis > 0) {
+-                            // Snail position was loaded, no need to re-spawn from scratch, onResume will handle
+-                            Log.d("LocationCallback", "Snail position loaded from pause state, not re-spawning here.");
+-                            // We still need to set hasSpawnedSnail to true so onResume logic can kick in
+-                            // if it wasn't already from loadGameState setting the flag.
+-                            // However, spawnSnail itself sets hasSpawnedSnail. This path is tricky.
+-                            // The idea is: if we have a valid snailPositionBeforePause, let onResume handle it.
+-                            // If not, and game just started, spawnSnail.
+-                            // This part of logic might need refinement if starting fresh vs resuming killed app.
+-                            // For now, let's assume if snailPositionBeforePause is null, we need to spawn.
++                        if (hasSpawnedSnail || snailPosition != null) {
++                            // Do nothing — snail already exists from saved state
++                            Log.d("SnailSpawn", "Snail already exists. Skipping re-spawn.");
+                         } else {
+-                            spawnSnail(snailDistanceSetting); // This will set hasSpawnedSnail
++                            spawnSnail(snailDistanceSetting); // Only for new games
+                             startSnailChase();
+                         }
+                     }
+-                    if (mMap != null && !hasCenteredOnce && currentPlayerLocation != null) {
+-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPlayerLocation, 18f));
+-                        hasCenteredOnce = true;
++                    if (mMap != null && currentPlayerLocation != null) {
++                        if (isFollowingPlayer) {
++                            mMap.animateCamera(CameraUpdateFactory.newLatLng(currentPlayerLocation));
++                        }
++
++                        if (!hasCenteredOnce) {
++                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPlayerLocation, 18f));
++                            hasCenteredOnce = true;
++                        }
+                     }
+-                    // Update player position for pause state if needed (though onPause is more direct)
+-                    // playerPositionBeforePause = currentPlayerLocation; // Keep this updated
+                 }
+             }
+         };
+@@ -1742,6 +1755,11 @@
+     public void onMapReady(@NonNull GoogleMap googleMap) {
+         mMap = googleMap;
+         mMap.getUiSettings().setZoomControlsEnabled(true);
++        mMap.setOnCameraMoveStartedListener(reason -> {
++            if (reason == GoogleMap.OnCameraMoveStartedListener.REASON_GESTURE) {
++                isFollowingPlayer = false;
++            }
++        });
+         // mMap.getUiSettings().setCompassEnabled(true); // Optional: show compass
+         if (snailPosition != null && snailMarker == null) {
+             Log.d("SnailDebug", "Recreating snail marker at: " + snailPosition);
+@@ -1823,17 +1841,29 @@
+     @Override
+     protected void onPause() {
+         super.onPause();
++
+         SharedPreferences.Editor editor = getSharedPreferences("GameSettings", MODE_PRIVATE).edit();
+         editor.putBoolean("vibration", false);
+         editor.apply();
++
+         loadSelectedSnailSprite();
+-        if (snailMarker != null && hasSpawnedSnail) {
+-            updateSnailIcon();  // Updates the snail's appearance (e.g. if it changed from settings or was replaced)
++
++        if (snailMarker != null && hasSpawnedSnail && snailPosition != null) {
++            // ✅ Save the snail's position
++            SharedPreferences.Editor gameStateEditor = getSharedPreferences("SnailGameState", MODE_PRIVATE).edit();
++            gameStateEditor.putString("snail_lat", String.valueOf(snailPosition.latitude));
++            gameStateEditor.putString("snail_lng", String.valueOf(snailPosition.longitude));
++            gameStateEditor.apply();
++            Log.d("onPause", "Saved snail position: " + snailPosition.latitude + ", " + snailPosition.longitude);
++
++            updateSnailIcon(); // Optional: refresh the sprite
+         }
++
+         LocalBroadcastManager.getInstance(this).registerReceiver(gameOverReceiver,
+                 new IntentFilter("GAME_OVER"));
+     }
+ 
++
+     private final BroadcastReceiver gameOverReceiver = new BroadcastReceiver() {
+         @Override
+         public void onReceive(Context context, Intent intent) {
+Index: app/src/main/notes.txt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/notes.txt b/app/src/main/notes.txt
+--- a/app/src/main/notes.txt	
++++ b/app/src/main/notes.txt	(date 1751815894875)
+@@ -5,7 +5,10 @@
+ shieldfix patch
+     fixed issue where the snail would not resume chase after it hit the player and was pushed back
+ 
+-cameraupdate patch
++cameraupdate patch1
+     fixed the map function ZoomLevel so that the player is always centered on the map
+         made more of the snail visible when i press ZoomLevel
+-    made sure the camera follows the player and centers it unless the player moves the screen
+\ No newline at end of file
++    made sure the camera follows the player and centers it unless the player moves the screen
++
++snailposition patch
++    fixed issuue where snail would reposition itsselff closer to the player when the player moved too far away
+\ No newline at end of file
+Index: camerapatch1.patch
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/camerapatch1.patch b/camerapatch1.patch
+new file mode 100644
+--- /dev/null	(date 1751814462428)
++++ b/camerapatch1.patch	(date 1751814462428)
+@@ -0,0 +1,93 @@
++Index: app/src/main/java/com/example/itfollows/MainActivity.java
++IDEA additional info:
++Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
++<+>UTF-8
++===================================================================
++diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
++--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
+++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1751814373510)
++@@ -71,6 +71,8 @@
++     private static final long TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000L;
++     private static final int REQUEST_CODE_HOLD = 444;
++     private GoogleMap mMap;
+++    private boolean isFollowingPlayer = true;
+++
++     private static final String MINIGAME_PREFS = "MinigamePrefs";
++     private static final String KEY_LAST_PLAYED_DATE = "LastPlayedDate";
++     private static final String KEY_TODAYS_TRIGGER_TIME = "TodaysTriggerTime";
++@@ -252,6 +254,11 @@
++         Location.distanceBetween(lat1, lng1, lat2, lng2, results);
++         return results[0]; // distance in meters
++     }
+++    private LatLng biasTowardPlayer(LatLng player, LatLng snail, double bias) {
+++        double lat = player.latitude * bias + snail.latitude * (1 - bias);
+++        double lng = player.longitude * bias + snail.longitude * (1 - bias);
+++        return new LatLng(lat, lng);
+++    }
++ 
++     @Override
++     protected void onCreate(Bundle savedInstanceState) {
++@@ -1286,12 +1293,16 @@
++                             startSnailChase();
++                         }
++                     }
++-                    if (mMap != null && !hasCenteredOnce && currentPlayerLocation != null) {
++-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPlayerLocation, 18f));
++-                        hasCenteredOnce = true;
+++                    if (mMap != null && currentPlayerLocation != null) {
+++                        if (isFollowingPlayer) {
+++                            mMap.animateCamera(CameraUpdateFactory.newLatLng(currentPlayerLocation));
+++                        }
+++
+++                        if (!hasCenteredOnce) {
+++                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPlayerLocation, 18f));
+++                            hasCenteredOnce = true;
+++                        }
++                     }
++-                    // Update player position for pause state if needed (though onPause is more direct)
++-                    // playerPositionBeforePause = currentPlayerLocation; // Keep this updated
++                 }
++             }
++         };
++@@ -1742,6 +1753,11 @@
++     public void onMapReady(@NonNull GoogleMap googleMap) {
++         mMap = googleMap;
++         mMap.getUiSettings().setZoomControlsEnabled(true);
+++        mMap.setOnCameraMoveStartedListener(reason -> {
+++            if (reason == GoogleMap.OnCameraMoveStartedListener.REASON_GESTURE) {
+++                isFollowingPlayer = false;
+++            }
+++        });
++         // mMap.getUiSettings().setCompassEnabled(true); // Optional: show compass
++         if (snailPosition != null && snailMarker == null) {
++             Log.d("SnailDebug", "Recreating snail marker at: " + snailPosition);
++Index: cameraupdate.patch
++IDEA additional info:
++Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
++<+>UTF-8
++===================================================================
++diff --git a/cameraupdate.patch b/cameraupdate.patch
++new file mode 100644
++--- /dev/null	(date 1751814080427)
+++++ b/cameraupdate.patch	(date 1751814080427)
++@@ -0,0 +1,20 @@
+++Index: app/src/main/java/com/example/itfollows/MainActivity.java
+++IDEA additional info:
+++Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+++<+>UTF-8
+++===================================================================
+++diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
+++--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
++++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1751814020885)
+++@@ -252,6 +252,11 @@
+++         Location.distanceBetween(lat1, lng1, lat2, lng2, results);
+++         return results[0]; // distance in meters
+++     }
++++    private LatLng biasTowardPlayer(LatLng player, LatLng snail, double bias) {
++++        double lat = player.latitude * bias + snail.latitude * (1 - bias);
++++        double lng = player.longitude * bias + snail.longitude * (1 - bias);
++++        return new LatLng(lat, lng);
++++    }
+++ 
+++     @Override
+++     protected void onCreate(Bundle savedInstanceState) {
+Index: cameraupdate.patch
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/cameraupdate.patch b/cameraupdate.patch
+new file mode 100644
+--- /dev/null	(date 1751814080427)
++++ b/cameraupdate.patch	(date 1751814080427)
+@@ -0,0 +1,20 @@
++Index: app/src/main/java/com/example/itfollows/MainActivity.java
++IDEA additional info:
++Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
++<+>UTF-8
++===================================================================
++diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
++--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
+++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1751814020885)
++@@ -252,6 +252,11 @@
++         Location.distanceBetween(lat1, lng1, lat2, lng2, results);
++         return results[0]; // distance in meters
++     }
+++    private LatLng biasTowardPlayer(LatLng player, LatLng snail, double bias) {
+++        double lat = player.latitude * bias + snail.latitude * (1 - bias);
+++        double lng = player.longitude * bias + snail.longitude * (1 - bias);
+++        return new LatLng(lat, lng);
+++    }
++ 
++     @Override
++     protected void onCreate(Bundle savedInstanceState) {

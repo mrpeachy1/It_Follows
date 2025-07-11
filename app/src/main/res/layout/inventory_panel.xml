@@ -1,0 +1,100 @@
+<!-- res/layout/inventory_panel.xml -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/inventoryPanel"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="#CCFDFDFD"
+    android:padding="8dp"
+    android:visibility="visible">
+    <!-- Note: android:orientation="vertical" is not a valid attribute for RelativeLayout.
+         It's used by LinearLayout. I've removed it. -->
+    <!-- Note: android:layout_alignParentBottom="true" was also in a strange place, removed for now.
+         If you want the whole panel at the bottom, this should be on the RelativeLayout
+         within its PARENT layout (e.g., in activity_maps.xml if this is included there). -->
+
+    <!-- 🧊 Salt Bomb -->
+    <TextView
+        android:id="@+id/saltBombLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🧊 Salt Bomb (0/5)"
+        android:textColor="#000000"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/saltBombDesc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/saltBombLabel"
+        android:text=""
+        android:textColor="#000000"
+        android:textSize="0dp"
+        android:layout_marginTop="2dp"/>
+
+    <Button
+        android:id="@+id/useSaltBombBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/saltBombDesc"
+        android:text="Use"
+        android:layout_marginTop="6dp" />
+
+    <!-- 🌀 Decoy Shell -->
+    <TextView
+        android:id="@+id/decoyLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/useSaltBombBtn"
+        android:text="🌀 Decoy Shell (0/5)"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:id="@+id/decoyDesc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/decoyLabel"
+        android:text=""
+        android:textColor="#000000"
+        android:textSize="0dp"
+        android:layout_marginTop="2dp"/>
+
+    <Button
+        android:id="@+id/useDecoyBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/decoyDesc"
+        android:text="Use"
+        android:layout_marginTop="6dp" />
+
+    <!-- 🛡️ Shell Shield -->
+    <TextView
+        android:id="@+id/shieldLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/useDecoyBtn"
+        android:text="🛡️ Shell Shield (0/1)"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:id="@+id/shieldDesc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/shieldLabel"
+        android:text=""
+        android:textColor="#000000"
+        android:textSize="0dp"
+        android:layout_marginTop="2dp"/>
+
+    <Button
+        android:id="@+id/useShieldBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/shieldDesc"
+        android:text="Use"
+        android:layout_marginTop="6dp" />
+
+</RelativeLayout>

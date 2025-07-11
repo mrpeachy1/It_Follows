@@ -1,0 +1,16 @@
+<resources>
+    <style name="ThemeOverlay.NoMaterialTint" parent="ThemeOverlay.MaterialComponents.Light">
+        <item name="colorControlHighlight">@android:color/transparent</item>
+        <item name="android:colorBackground">@android:color/transparent</item>
+    </style>
+    <style name="Theme.AppCompat.Transparent.NoActionBar"
+        parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:backgroundDimEnabled">true</item> <!-- Dims background -->
+        <item name="android:backgroundDimAmount">0.6</item> <!-- Dim amount -->
+    </style>
+</resources>

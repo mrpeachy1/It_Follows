@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "398767941420",
+    "project_id": "it-follows-b9be6",
+    "storage_bucket": "it-follows-b9be6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:398767941420:android:0a8e352d561da676a26e89",
+        "android_client_info": {
+          "package_name": "com.DefaultCompany.ItFollows"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwRq5OQsVRzJQktyjzQsZp5qdvxSGlp8U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:398767941420:android:17babcc74f5ffcdba26e89",
+        "android_client_info": {
+          "package_name": "com.example.itfollows"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwRq5OQsVRzJQktyjzQsZp5qdvxSGlp8U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

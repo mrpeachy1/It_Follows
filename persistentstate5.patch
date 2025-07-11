@@ -1,0 +1,861 @@
+Index: app/src/main/res/layout/activity_maps.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/activity_maps.xml b/app/src/main/res/layout/activity_maps.xml
+--- a/app/src/main/res/layout/activity_maps.xml	
++++ b/app/src/main/res/layout/activity_maps.xml	(date 1752091680721)
+@@ -266,7 +266,15 @@
+             android:textColor="#FFFF66"
+             android:textSize="16sp"
+             android:layout_marginTop="4dp" />
+-
++        <TextView
++            android:id="@+id/repelCooldownText"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:textColor="#FF8888"
++            android:textSize="14sp"
++            android:layout_marginTop="4dp"
++            android:visibility="gone"
++            android:text="Cooldown: 23h 59m left" />
+         <Button
+             android:id="@+id/buyRepelBtn"
+             android:layout_width="match_parent"
+Index: app/src/main/java/com/example/itfollows/MainActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
+--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1752156270608)
+@@ -391,34 +391,31 @@
+ 
+         super.onCreate(savedInstanceState);
+         setContentView(R.layout.activity_maps);
+-
++        SharedPreferences statePrefs = getSharedPreferences("SnailGameState", MODE_PRIVATE);
++        boolean hasSavedSnail = statePrefs.contains("snail_lat") && statePrefs.contains("snail_lng");
+         boolean isNewGame = getIntent().getBooleanExtra("isNewGame", false); // safer default
+         Log.d("MainActivity", "isNewGame = " + isNewGame);
+-
+-        if (isNewGame) {
+-            SharedPreferences powerUpPrefs = getSharedPreferences("PowerUpInventory", MODE_PRIVATE);
+-            powerUpPrefs.edit().clear().apply();
++        Log.d("MainActivity", "hasSavedSnail = " + hasSavedSnail);
+ 
+-            getSharedPreferences("SnailGameState", MODE_PRIVATE).edit().clear().apply();
+-
++        if (isNewGame || !hasSavedSnail) {
++            // Fresh game setup
++            statePrefs.edit().clear().apply();
++            getSharedPreferences("PowerUpInventory", MODE_PRIVATE).edit().clear().apply();
+             resetLocalGameState();
+             spawnSnailAtRandomLocation();
+-            Log.d("MainActivity", "New game: inventory and state cleared");
++            Log.d("MainActivity", "New game: reset state and spawned snail.");
+         } else {
++            // Resume previous state
+             loadGameState();
+             startSnailChase();
++            Log.d("MainActivity", "Resumed saved game state.");
+         }
++ 
+         powerUpPrefs = getSharedPreferences("PowerUpInventory", MODE_PRIVATE);
+         powerUpEditor = powerUpPrefs.edit();
+         updatePowerUpUI();
+ 
+-        if (isNewGame) {
+-            spawnSnailAndStartGame();
+-        } else {
+-            loadGameState();
+-            startSnailChase();
+-        }
+-        SharedPreferences currencyPrefs = getSharedPreferences("SnailCurrency", MODE_PRIVATE);
++        SharedPreferences currencyPrefs = getSharedPreferences("snailCoins", MODE_PRIVATE);
+         SharedPreferences.Editor currencyEditor = currencyPrefs.edit();
+ 
+         if (!currencyPrefs.contains("snailCoins")) {
+@@ -725,7 +722,6 @@
+         increaseBtn.setOnClickListener(v -> {
+             if (selectedRepelDistance < MAX_REPEL) {
+                 selectedRepelDistance += REPEL_INCREMENT;
+-                Log.d("SnailRepel", "Increased repel distance to: " + selectedRepelDistance);
+                 updateRepelUI(repelDistanceText, repelCostText);
+             }
+         });
+@@ -733,7 +729,6 @@
+         decreaseBtn.setOnClickListener(v -> {
+             if (selectedRepelDistance > MIN_REPEL) {
+                 selectedRepelDistance -= REPEL_INCREMENT;
+-                Log.d("SnailRepel", "Decreased repel distance to: " + selectedRepelDistance);
+                 updateRepelUI(repelDistanceText, repelCostText);
+             }
+         });
+@@ -744,63 +739,43 @@
+             long lastUsed = cooldownPrefs.getLong("repelLastUsed", 0);
+ 
+             if (System.currentTimeMillis() - lastUsed < REPEL_COOLDOWN_MS) {
+-                Log.d("SnailRepel", "Attempted to use repel while on cooldown.");
+                 Toast.makeText(this, "Snail Repel is still recharging.", Toast.LENGTH_SHORT).show();
+                 return;
+             }
+ 
+             if (getSnailCoinBalance() >= cost) {
+-                Log.d("SnailRepel", "Purchasing repel at distance: " + selectedRepelDistance + ", cost: " + cost);
+                 updateSnailCoinBalance(cost);
+                 applySnailRepel(selectedRepelDistance);
+                 cooldownPrefs.edit().putLong("repelLastUsed", System.currentTimeMillis()).apply();
+                 Toast.makeText(this, "Snail repelled " + selectedRepelDistance + " meters!", Toast.LENGTH_SHORT).show();
+             } else {
+-                Log.d("SnailRepel", "Insufficient coins. Needed: " + cost + ", Available: " + getSnailCoinBalance());
+                 Toast.makeText(this, "Not enough Snail Coins!", Toast.LENGTH_SHORT).show();
+             }
+         });
+     }
+ 
+     private void updateRepelUI(TextView distText, TextView costText) {
+-        Log.d("SnailRepel", "Updating UI for repel distance: " + selectedRepelDistance);
+         distText.setText(selectedRepelDistance + "m");
+         costText.setText("$" + String.format("%,d", calculateRepelCost(selectedRepelDistance)));
+     }
+ 
+     private int calculateRepelCost(int distance) {
+-        int cost;
+         switch (distance) {
+-            case 50:
+-                cost = 25000;
+-                break;
+-            case 100:
+-                cost = 60000;
+-                break;
+-            case 150:
+-                cost = 120000;
+-                break;
+-            case 200:
+-                cost = 200000;
+-                break;
+-            default:
+-                cost = 0;
+-                break;
++            case 50: return 25000;
++            case 100: return 60000;
++            case 150: return 120000;
++            case 200: return 200000;
++            default: return 0;
+         }
+-        Log.d("SnailRepel", "Calculated repel cost for " + distance + "m: " + cost);
+-        return cost;
+     }
+ 
+     private void applySnailRepel(int meters) {
+-        if (snailPosition == null || playerPosition == null) {
+-            Log.w("SnailRepel", "Cannot apply repel: snail or player position is null.");
+-            return;
+-        }
++        if (snailPosition == null || playerPosition == null) return;
+ 
+         double bearing = getBearing(playerPosition, snailPosition);
+-        Log.d("SnailRepel", "Calculated bearing from player to snail: " + bearing);
+-        LatLng newSnailPos = moveAwayFrom(playerPosition, bearing, meters);
+-        Log.d("SnailRepel", "New snail position after repel: " + newSnailPos);
++        double distance = distanceBetween(playerPosition, snailPosition);
++        double newTotalDistance = distance + meters;
++        LatLng newSnailPos = moveAwayFrom(playerPosition, bearing, newTotalDistance);
+ 
+         snailPosition = newSnailPos;
+         if (snailMarker != null) snailMarker.setPosition(snailPosition);
+@@ -817,14 +792,12 @@
+         double x = Math.cos(lat1) * Math.sin(lat2) -
+                 Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+ 
+-        double result = (Math.toDegrees(Math.atan2(y, x)) + 360) % 360;
+-        Log.d("SnailRepel", "getBearing result: " + result);
+-        return result;
++        return (Math.toDegrees(Math.atan2(y, x)) + 360) % 360;
+     }
+ 
+     private LatLng moveAwayFrom(LatLng from, double bearing, double meters) {
+         double R = 6371000.0; // Earth radius in meters
+-        double bearingRad = Math.toRadians(bearing + 180); // reverse
++        double bearingRad = Math.toRadians(bearing);
+ 
+         double lat1 = Math.toRadians(from.latitude);
+         double lon1 = Math.toRadians(from.longitude);
+@@ -835,9 +808,13 @@
+                 Math.sin(bearingRad) * Math.sin(meters / R) * Math.cos(lat1),
+                 Math.cos(meters / R) - Math.sin(lat1) * Math.sin(lat2));
+ 
+-        LatLng result = new LatLng(Math.toDegrees(lat2), Math.toDegrees(lon2));
+-        Log.d("SnailRepel", "moveAwayFrom result: " + result);
+-        return result;
++        return new LatLng(Math.toDegrees(lat2), Math.toDegrees(lon2));
++    }
++
++    private double distanceBetween(LatLng from, LatLng to) {
++        float[] results = new float[1];
++        Location.distanceBetween(from.latitude, from.longitude, to.latitude, to.longitude, results);
++        return results[0];
+     }
+     private void checkIfMinigameShouldTrigger() {
+         SharedPreferences prefs = getSharedPreferences(MINIGAME_PREFS, MODE_PRIVATE);
+Index: app/src/main/notes.txt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/notes.txt b/app/src/main/notes.txt
+--- a/app/src/main/notes.txt	
++++ b/app/src/main/notes.txt	(date 1752152679456)
+@@ -80,4 +80,8 @@
+ persistentstate3 patch
+     attempt 3
+ 
+-Suggestions
++Suggestions1
++    added snail repel in store
++
++persistentstate4 patch
++        attempt 4
+\ No newline at end of file
+Index: Suggestions1.patch
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Suggestions1.patch b/Suggestions1.patch
+new file mode 100644
+--- /dev/null	(date 1752092462152)
++++ b/Suggestions1.patch	(date 1752092462152)
+@@ -0,0 +1,191 @@
++Index: app/src/main/res/layout/activity_maps.xml
++IDEA additional info:
++Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
++<+>UTF-8
++===================================================================
++diff --git a/app/src/main/res/layout/activity_maps.xml b/app/src/main/res/layout/activity_maps.xml
++--- a/app/src/main/res/layout/activity_maps.xml	
+++++ b/app/src/main/res/layout/activity_maps.xml	(date 1752091680721)
++@@ -266,7 +266,15 @@
++             android:textColor="#FFFF66"
++             android:textSize="16sp"
++             android:layout_marginTop="4dp" />
++-
+++        <TextView
+++            android:id="@+id/repelCooldownText"
+++            android:layout_width="wrap_content"
+++            android:layout_height="wrap_content"
+++            android:textColor="#FF8888"
+++            android:textSize="14sp"
+++            android:layout_marginTop="4dp"
+++            android:visibility="gone"
+++            android:text="Cooldown: 23h 59m left" />
++         <Button
++             android:id="@+id/buyRepelBtn"
++             android:layout_width="match_parent"
++Index: app/src/main/java/com/example/itfollows/MainActivity.java
++IDEA additional info:
++Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
++<+>UTF-8
++===================================================================
++diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
++--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
+++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1752092359182)
++@@ -400,7 +400,8 @@
++             powerUpPrefs.edit().clear().apply();
++ 
++             getSharedPreferences("SnailGameState", MODE_PRIVATE).edit().clear().apply();
++-
+++            getSharedPreferences("PowerUpCooldowns", MODE_PRIVATE).edit().clear().apply();
+++            Log.d("MainActivity", "New game: power-up cooldowns cleared");
++             resetLocalGameState();
++             spawnSnailAtRandomLocation();
++             Log.d("MainActivity", "New game: inventory and state cleared");
++@@ -418,7 +419,7 @@
++             loadGameState();
++             startSnailChase();
++         }
++-        SharedPreferences currencyPrefs = getSharedPreferences("SnailCurrency", MODE_PRIVATE);
+++        SharedPreferences currencyPrefs = getSharedPreferences("snailCoins", MODE_PRIVATE);
++         SharedPreferences.Editor currencyEditor = currencyPrefs.edit();
++ 
++         if (!currencyPrefs.contains("snailCoins")) {
++@@ -725,7 +726,6 @@
++         increaseBtn.setOnClickListener(v -> {
++             if (selectedRepelDistance < MAX_REPEL) {
++                 selectedRepelDistance += REPEL_INCREMENT;
++-                Log.d("SnailRepel", "Increased repel distance to: " + selectedRepelDistance);
++                 updateRepelUI(repelDistanceText, repelCostText);
++             }
++         });
++@@ -733,7 +733,6 @@
++         decreaseBtn.setOnClickListener(v -> {
++             if (selectedRepelDistance > MIN_REPEL) {
++                 selectedRepelDistance -= REPEL_INCREMENT;
++-                Log.d("SnailRepel", "Decreased repel distance to: " + selectedRepelDistance);
++                 updateRepelUI(repelDistanceText, repelCostText);
++             }
++         });
++@@ -744,63 +743,43 @@
++             long lastUsed = cooldownPrefs.getLong("repelLastUsed", 0);
++ 
++             if (System.currentTimeMillis() - lastUsed < REPEL_COOLDOWN_MS) {
++-                Log.d("SnailRepel", "Attempted to use repel while on cooldown.");
++                 Toast.makeText(this, "Snail Repel is still recharging.", Toast.LENGTH_SHORT).show();
++                 return;
++             }
++ 
++             if (getSnailCoinBalance() >= cost) {
++-                Log.d("SnailRepel", "Purchasing repel at distance: " + selectedRepelDistance + ", cost: " + cost);
++                 updateSnailCoinBalance(cost);
++                 applySnailRepel(selectedRepelDistance);
++                 cooldownPrefs.edit().putLong("repelLastUsed", System.currentTimeMillis()).apply();
++                 Toast.makeText(this, "Snail repelled " + selectedRepelDistance + " meters!", Toast.LENGTH_SHORT).show();
++             } else {
++-                Log.d("SnailRepel", "Insufficient coins. Needed: " + cost + ", Available: " + getSnailCoinBalance());
++                 Toast.makeText(this, "Not enough Snail Coins!", Toast.LENGTH_SHORT).show();
++             }
++         });
++     }
++ 
++     private void updateRepelUI(TextView distText, TextView costText) {
++-        Log.d("SnailRepel", "Updating UI for repel distance: " + selectedRepelDistance);
++         distText.setText(selectedRepelDistance + "m");
++         costText.setText("$" + String.format("%,d", calculateRepelCost(selectedRepelDistance)));
++     }
++ 
++     private int calculateRepelCost(int distance) {
++-        int cost;
++         switch (distance) {
++-            case 50:
++-                cost = 25000;
++-                break;
++-            case 100:
++-                cost = 60000;
++-                break;
++-            case 150:
++-                cost = 120000;
++-                break;
++-            case 200:
++-                cost = 200000;
++-                break;
++-            default:
++-                cost = 0;
++-                break;
+++            case 50: return 25000;
+++            case 100: return 60000;
+++            case 150: return 120000;
+++            case 200: return 200000;
+++            default: return 0;
++         }
++-        Log.d("SnailRepel", "Calculated repel cost for " + distance + "m: " + cost);
++-        return cost;
++     }
++ 
++     private void applySnailRepel(int meters) {
++-        if (snailPosition == null || playerPosition == null) {
++-            Log.w("SnailRepel", "Cannot apply repel: snail or player position is null.");
++-            return;
++-        }
+++        if (snailPosition == null || playerPosition == null) return;
++ 
++         double bearing = getBearing(playerPosition, snailPosition);
++-        Log.d("SnailRepel", "Calculated bearing from player to snail: " + bearing);
++-        LatLng newSnailPos = moveAwayFrom(playerPosition, bearing, meters);
++-        Log.d("SnailRepel", "New snail position after repel: " + newSnailPos);
+++        double distance = distanceBetween(playerPosition, snailPosition);
+++        double newTotalDistance = distance + meters;
+++        LatLng newSnailPos = moveAwayFrom(playerPosition, bearing, newTotalDistance);
++ 
++         snailPosition = newSnailPos;
++         if (snailMarker != null) snailMarker.setPosition(snailPosition);
++@@ -817,14 +796,12 @@
++         double x = Math.cos(lat1) * Math.sin(lat2) -
++                 Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
++ 
++-        double result = (Math.toDegrees(Math.atan2(y, x)) + 360) % 360;
++-        Log.d("SnailRepel", "getBearing result: " + result);
++-        return result;
+++        return (Math.toDegrees(Math.atan2(y, x)) + 360) % 360;
++     }
++ 
++     private LatLng moveAwayFrom(LatLng from, double bearing, double meters) {
++         double R = 6371000.0; // Earth radius in meters
++-        double bearingRad = Math.toRadians(bearing + 180); // reverse
+++        double bearingRad = Math.toRadians(bearing);
++ 
++         double lat1 = Math.toRadians(from.latitude);
++         double lon1 = Math.toRadians(from.longitude);
++@@ -835,9 +812,13 @@
++                 Math.sin(bearingRad) * Math.sin(meters / R) * Math.cos(lat1),
++                 Math.cos(meters / R) - Math.sin(lat1) * Math.sin(lat2));
++ 
++-        LatLng result = new LatLng(Math.toDegrees(lat2), Math.toDegrees(lon2));
++-        Log.d("SnailRepel", "moveAwayFrom result: " + result);
++-        return result;
+++        return new LatLng(Math.toDegrees(lat2), Math.toDegrees(lon2));
+++    }
+++
+++    private double distanceBetween(LatLng from, LatLng to) {
+++        float[] results = new float[1];
+++        Location.distanceBetween(from.latitude, from.longitude, to.latitude, to.longitude, results);
+++        return results[0];
++     }
++     private void checkIfMinigameShouldTrigger() {
++         SharedPreferences prefs = getSharedPreferences(MINIGAME_PREFS, MODE_PRIVATE);
++Index: app/src/main/notes.txt
++IDEA additional info:
++Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
++<+>UTF-8
++===================================================================
++diff --git a/app/src/main/notes.txt b/app/src/main/notes.txt
++--- a/app/src/main/notes.txt	
+++++ b/app/src/main/notes.txt	(date 1752092455603)
++@@ -80,4 +80,5 @@
++ persistentstate3 patch
++     attempt 3
++ 
++-Suggestions
+++Suggestions1
+++    added snail repel in store
++\ No newline at end of file
+Index: persistentstate4.patch
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/persistentstate4.patch b/persistentstate4.patch
+new file mode 100644
+--- /dev/null	(date 1752152685089)
++++ b/persistentstate4.patch	(date 1752152685089)
+@@ -0,0 +1,428 @@
++Index: app/src/main/res/layout/activity_maps.xml
++IDEA additional info:
++Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
++<+>UTF-8
++===================================================================
++diff --git a/app/src/main/res/layout/activity_maps.xml b/app/src/main/res/layout/activity_maps.xml
++--- a/app/src/main/res/layout/activity_maps.xml	
+++++ b/app/src/main/res/layout/activity_maps.xml	(date 1752091680721)
++@@ -266,7 +266,15 @@
++             android:textColor="#FFFF66"
++             android:textSize="16sp"
++             android:layout_marginTop="4dp" />
++-
+++        <TextView
+++            android:id="@+id/repelCooldownText"
+++            android:layout_width="wrap_content"
+++            android:layout_height="wrap_content"
+++            android:textColor="#FF8888"
+++            android:textSize="14sp"
+++            android:layout_marginTop="4dp"
+++            android:visibility="gone"
+++            android:text="Cooldown: 23h 59m left" />
++         <Button
++             android:id="@+id/buyRepelBtn"
++             android:layout_width="match_parent"
++Index: app/src/main/java/com/example/itfollows/MainActivity.java
++IDEA additional info:
++Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
++<+>UTF-8
++===================================================================
++diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
++--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
+++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1752152642755)
++@@ -391,22 +391,34 @@
++ 
++         super.onCreate(savedInstanceState);
++         setContentView(R.layout.activity_maps);
++-
+++        SharedPreferences statePrefs = getSharedPreferences("SnailGameState", MODE_PRIVATE);
+++        boolean hasSavedSnail = statePrefs.contains("snail_lat") && statePrefs.contains("snail_lng");
++         boolean isNewGame = getIntent().getBooleanExtra("isNewGame", false); // safer default
++         Log.d("MainActivity", "isNewGame = " + isNewGame);
++-
++-        if (isNewGame) {
++-            SharedPreferences powerUpPrefs = getSharedPreferences("PowerUpInventory", MODE_PRIVATE);
++-            powerUpPrefs.edit().clear().apply();
+++        Log.d("MainActivity", "hasSavedSnail = " + hasSavedSnail);
++ 
++-            getSharedPreferences("SnailGameState", MODE_PRIVATE).edit().clear().apply();
++-
+++        if (isNewGame || !hasSavedSnail) {
+++            // Fresh game setup
+++            statePrefs.edit().clear().apply();
+++            getSharedPreferences("PowerUpInventory", MODE_PRIVATE).edit().clear().apply();
++             resetLocalGameState();
++             spawnSnailAtRandomLocation();
++-            Log.d("MainActivity", "New game: inventory and state cleared");
+++            Log.d("MainActivity", "New game: reset state and spawned snail.");
++         } else {
+++            // Resume previous state
++             loadGameState();
++             startSnailChase();
+++            Log.d("MainActivity", "Resumed saved game state.");
+++        }
+++        SharedPreferences prefs = getSharedPreferences("SnailGameState", MODE_PRIVATE);
+++        boolean hasSaved = prefs.contains("snail_lat") && prefs.contains("player_lat");
+++
+++        if (!isNewGame && hasSaved) {
+++            loadGameState();
+++            Log.d("DEBUG_FLOW", "Loaded saved game state.");
+++        } else {
+++            spawnSnailAtRandomLocation();
+++            Log.d("DEBUG_FLOW", "No save found, spawning new snail.");
++         }
++         powerUpPrefs = getSharedPreferences("PowerUpInventory", MODE_PRIVATE);
++         powerUpEditor = powerUpPrefs.edit();
++@@ -418,7 +430,7 @@
++             loadGameState();
++             startSnailChase();
++         }
++-        SharedPreferences currencyPrefs = getSharedPreferences("SnailCurrency", MODE_PRIVATE);
+++        SharedPreferences currencyPrefs = getSharedPreferences("snailCoins", MODE_PRIVATE);
++         SharedPreferences.Editor currencyEditor = currencyPrefs.edit();
++ 
++         if (!currencyPrefs.contains("snailCoins")) {
++@@ -725,7 +737,6 @@
++         increaseBtn.setOnClickListener(v -> {
++             if (selectedRepelDistance < MAX_REPEL) {
++                 selectedRepelDistance += REPEL_INCREMENT;
++-                Log.d("SnailRepel", "Increased repel distance to: " + selectedRepelDistance);
++                 updateRepelUI(repelDistanceText, repelCostText);
++             }
++         });
++@@ -733,7 +744,6 @@
++         decreaseBtn.setOnClickListener(v -> {
++             if (selectedRepelDistance > MIN_REPEL) {
++                 selectedRepelDistance -= REPEL_INCREMENT;
++-                Log.d("SnailRepel", "Decreased repel distance to: " + selectedRepelDistance);
++                 updateRepelUI(repelDistanceText, repelCostText);
++             }
++         });
++@@ -744,63 +754,43 @@
++             long lastUsed = cooldownPrefs.getLong("repelLastUsed", 0);
++ 
++             if (System.currentTimeMillis() - lastUsed < REPEL_COOLDOWN_MS) {
++-                Log.d("SnailRepel", "Attempted to use repel while on cooldown.");
++                 Toast.makeText(this, "Snail Repel is still recharging.", Toast.LENGTH_SHORT).show();
++                 return;
++             }
++ 
++             if (getSnailCoinBalance() >= cost) {
++-                Log.d("SnailRepel", "Purchasing repel at distance: " + selectedRepelDistance + ", cost: " + cost);
++                 updateSnailCoinBalance(cost);
++                 applySnailRepel(selectedRepelDistance);
++                 cooldownPrefs.edit().putLong("repelLastUsed", System.currentTimeMillis()).apply();
++                 Toast.makeText(this, "Snail repelled " + selectedRepelDistance + " meters!", Toast.LENGTH_SHORT).show();
++             } else {
++-                Log.d("SnailRepel", "Insufficient coins. Needed: " + cost + ", Available: " + getSnailCoinBalance());
++                 Toast.makeText(this, "Not enough Snail Coins!", Toast.LENGTH_SHORT).show();
++             }
++         });
++     }
++ 
++     private void updateRepelUI(TextView distText, TextView costText) {
++-        Log.d("SnailRepel", "Updating UI for repel distance: " + selectedRepelDistance);
++         distText.setText(selectedRepelDistance + "m");
++         costText.setText("$" + String.format("%,d", calculateRepelCost(selectedRepelDistance)));
++     }
++ 
++     private int calculateRepelCost(int distance) {
++-        int cost;
++         switch (distance) {
++-            case 50:
++-                cost = 25000;
++-                break;
++-            case 100:
++-                cost = 60000;
++-                break;
++-            case 150:
++-                cost = 120000;
++-                break;
++-            case 200:
++-                cost = 200000;
++-                break;
++-            default:
++-                cost = 0;
++-                break;
+++            case 50: return 25000;
+++            case 100: return 60000;
+++            case 150: return 120000;
+++            case 200: return 200000;
+++            default: return 0;
++         }
++-        Log.d("SnailRepel", "Calculated repel cost for " + distance + "m: " + cost);
++-        return cost;
++     }
++ 
++     private void applySnailRepel(int meters) {
++-        if (snailPosition == null || playerPosition == null) {
++-            Log.w("SnailRepel", "Cannot apply repel: snail or player position is null.");
++-            return;
++-        }
+++        if (snailPosition == null || playerPosition == null) return;
++ 
++         double bearing = getBearing(playerPosition, snailPosition);
++-        Log.d("SnailRepel", "Calculated bearing from player to snail: " + bearing);
++-        LatLng newSnailPos = moveAwayFrom(playerPosition, bearing, meters);
++-        Log.d("SnailRepel", "New snail position after repel: " + newSnailPos);
+++        double distance = distanceBetween(playerPosition, snailPosition);
+++        double newTotalDistance = distance + meters;
+++        LatLng newSnailPos = moveAwayFrom(playerPosition, bearing, newTotalDistance);
++ 
++         snailPosition = newSnailPos;
++         if (snailMarker != null) snailMarker.setPosition(snailPosition);
++@@ -817,14 +807,12 @@
++         double x = Math.cos(lat1) * Math.sin(lat2) -
++                 Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
++ 
++-        double result = (Math.toDegrees(Math.atan2(y, x)) + 360) % 360;
++-        Log.d("SnailRepel", "getBearing result: " + result);
++-        return result;
+++        return (Math.toDegrees(Math.atan2(y, x)) + 360) % 360;
++     }
++ 
++     private LatLng moveAwayFrom(LatLng from, double bearing, double meters) {
++         double R = 6371000.0; // Earth radius in meters
++-        double bearingRad = Math.toRadians(bearing + 180); // reverse
+++        double bearingRad = Math.toRadians(bearing);
++ 
++         double lat1 = Math.toRadians(from.latitude);
++         double lon1 = Math.toRadians(from.longitude);
++@@ -835,9 +823,13 @@
++                 Math.sin(bearingRad) * Math.sin(meters / R) * Math.cos(lat1),
++                 Math.cos(meters / R) - Math.sin(lat1) * Math.sin(lat2));
++ 
++-        LatLng result = new LatLng(Math.toDegrees(lat2), Math.toDegrees(lon2));
++-        Log.d("SnailRepel", "moveAwayFrom result: " + result);
++-        return result;
+++        return new LatLng(Math.toDegrees(lat2), Math.toDegrees(lon2));
+++    }
+++
+++    private double distanceBetween(LatLng from, LatLng to) {
+++        float[] results = new float[1];
+++        Location.distanceBetween(from.latitude, from.longitude, to.latitude, to.longitude, results);
+++        return results[0];
++     }
++     private void checkIfMinigameShouldTrigger() {
++         SharedPreferences prefs = getSharedPreferences(MINIGAME_PREFS, MODE_PRIVATE);
++Index: app/src/main/notes.txt
++IDEA additional info:
++Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
++<+>UTF-8
++===================================================================
++diff --git a/app/src/main/notes.txt b/app/src/main/notes.txt
++--- a/app/src/main/notes.txt	
+++++ b/app/src/main/notes.txt	(date 1752152679456)
++@@ -80,4 +80,8 @@
++ persistentstate3 patch
++     attempt 3
++ 
++-Suggestions
+++Suggestions1
+++    added snail repel in store
+++
+++persistentstate4 patch
+++        attempt 4
++\ No newline at end of file
++Index: Suggestions1.patch
++IDEA additional info:
++Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
++<+>UTF-8
++===================================================================
++diff --git a/Suggestions1.patch b/Suggestions1.patch
++new file mode 100644
++--- /dev/null	(date 1752092462152)
+++++ b/Suggestions1.patch	(date 1752092462152)
++@@ -0,0 +1,191 @@
+++Index: app/src/main/res/layout/activity_maps.xml
+++IDEA additional info:
+++Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+++<+>UTF-8
+++===================================================================
+++diff --git a/app/src/main/res/layout/activity_maps.xml b/app/src/main/res/layout/activity_maps.xml
+++--- a/app/src/main/res/layout/activity_maps.xml	
++++++ b/app/src/main/res/layout/activity_maps.xml	(date 1752091680721)
+++@@ -266,7 +266,15 @@
+++             android:textColor="#FFFF66"
+++             android:textSize="16sp"
+++             android:layout_marginTop="4dp" />
+++-
++++        <TextView
++++            android:id="@+id/repelCooldownText"
++++            android:layout_width="wrap_content"
++++            android:layout_height="wrap_content"
++++            android:textColor="#FF8888"
++++            android:textSize="14sp"
++++            android:layout_marginTop="4dp"
++++            android:visibility="gone"
++++            android:text="Cooldown: 23h 59m left" />
+++         <Button
+++             android:id="@+id/buyRepelBtn"
+++             android:layout_width="match_parent"
+++Index: app/src/main/java/com/example/itfollows/MainActivity.java
+++IDEA additional info:
+++Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+++<+>UTF-8
+++===================================================================
+++diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
+++--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
++++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1752092359182)
+++@@ -400,7 +400,8 @@
+++             powerUpPrefs.edit().clear().apply();
+++ 
+++             getSharedPreferences("SnailGameState", MODE_PRIVATE).edit().clear().apply();
+++-
++++            getSharedPreferences("PowerUpCooldowns", MODE_PRIVATE).edit().clear().apply();
++++            Log.d("MainActivity", "New game: power-up cooldowns cleared");
+++             resetLocalGameState();
+++             spawnSnailAtRandomLocation();
+++             Log.d("MainActivity", "New game: inventory and state cleared");
+++@@ -418,7 +419,7 @@
+++             loadGameState();
+++             startSnailChase();
+++         }
+++-        SharedPreferences currencyPrefs = getSharedPreferences("SnailCurrency", MODE_PRIVATE);
++++        SharedPreferences currencyPrefs = getSharedPreferences("snailCoins", MODE_PRIVATE);
+++         SharedPreferences.Editor currencyEditor = currencyPrefs.edit();
+++ 
+++         if (!currencyPrefs.contains("snailCoins")) {
+++@@ -725,7 +726,6 @@
+++         increaseBtn.setOnClickListener(v -> {
+++             if (selectedRepelDistance < MAX_REPEL) {
+++                 selectedRepelDistance += REPEL_INCREMENT;
+++-                Log.d("SnailRepel", "Increased repel distance to: " + selectedRepelDistance);
+++                 updateRepelUI(repelDistanceText, repelCostText);
+++             }
+++         });
+++@@ -733,7 +733,6 @@
+++         decreaseBtn.setOnClickListener(v -> {
+++             if (selectedRepelDistance > MIN_REPEL) {
+++                 selectedRepelDistance -= REPEL_INCREMENT;
+++-                Log.d("SnailRepel", "Decreased repel distance to: " + selectedRepelDistance);
+++                 updateRepelUI(repelDistanceText, repelCostText);
+++             }
+++         });
+++@@ -744,63 +743,43 @@
+++             long lastUsed = cooldownPrefs.getLong("repelLastUsed", 0);
+++ 
+++             if (System.currentTimeMillis() - lastUsed < REPEL_COOLDOWN_MS) {
+++-                Log.d("SnailRepel", "Attempted to use repel while on cooldown.");
+++                 Toast.makeText(this, "Snail Repel is still recharging.", Toast.LENGTH_SHORT).show();
+++                 return;
+++             }
+++ 
+++             if (getSnailCoinBalance() >= cost) {
+++-                Log.d("SnailRepel", "Purchasing repel at distance: " + selectedRepelDistance + ", cost: " + cost);
+++                 updateSnailCoinBalance(cost);
+++                 applySnailRepel(selectedRepelDistance);
+++                 cooldownPrefs.edit().putLong("repelLastUsed", System.currentTimeMillis()).apply();
+++                 Toast.makeText(this, "Snail repelled " + selectedRepelDistance + " meters!", Toast.LENGTH_SHORT).show();
+++             } else {
+++-                Log.d("SnailRepel", "Insufficient coins. Needed: " + cost + ", Available: " + getSnailCoinBalance());
+++                 Toast.makeText(this, "Not enough Snail Coins!", Toast.LENGTH_SHORT).show();
+++             }
+++         });
+++     }
+++ 
+++     private void updateRepelUI(TextView distText, TextView costText) {
+++-        Log.d("SnailRepel", "Updating UI for repel distance: " + selectedRepelDistance);
+++         distText.setText(selectedRepelDistance + "m");
+++         costText.setText("$" + String.format("%,d", calculateRepelCost(selectedRepelDistance)));
+++     }
+++ 
+++     private int calculateRepelCost(int distance) {
+++-        int cost;
+++         switch (distance) {
+++-            case 50:
+++-                cost = 25000;
+++-                break;
+++-            case 100:
+++-                cost = 60000;
+++-                break;
+++-            case 150:
+++-                cost = 120000;
+++-                break;
+++-            case 200:
+++-                cost = 200000;
+++-                break;
+++-            default:
+++-                cost = 0;
+++-                break;
++++            case 50: return 25000;
++++            case 100: return 60000;
++++            case 150: return 120000;
++++            case 200: return 200000;
++++            default: return 0;
+++         }
+++-        Log.d("SnailRepel", "Calculated repel cost for " + distance + "m: " + cost);
+++-        return cost;
+++     }
+++ 
+++     private void applySnailRepel(int meters) {
+++-        if (snailPosition == null || playerPosition == null) {
+++-            Log.w("SnailRepel", "Cannot apply repel: snail or player position is null.");
+++-            return;
+++-        }
++++        if (snailPosition == null || playerPosition == null) return;
+++ 
+++         double bearing = getBearing(playerPosition, snailPosition);
+++-        Log.d("SnailRepel", "Calculated bearing from player to snail: " + bearing);
+++-        LatLng newSnailPos = moveAwayFrom(playerPosition, bearing, meters);
+++-        Log.d("SnailRepel", "New snail position after repel: " + newSnailPos);
++++        double distance = distanceBetween(playerPosition, snailPosition);
++++        double newTotalDistance = distance + meters;
++++        LatLng newSnailPos = moveAwayFrom(playerPosition, bearing, newTotalDistance);
+++ 
+++         snailPosition = newSnailPos;
+++         if (snailMarker != null) snailMarker.setPosition(snailPosition);
+++@@ -817,14 +796,12 @@
+++         double x = Math.cos(lat1) * Math.sin(lat2) -
+++                 Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+++ 
+++-        double result = (Math.toDegrees(Math.atan2(y, x)) + 360) % 360;
+++-        Log.d("SnailRepel", "getBearing result: " + result);
+++-        return result;
++++        return (Math.toDegrees(Math.atan2(y, x)) + 360) % 360;
+++     }
+++ 
+++     private LatLng moveAwayFrom(LatLng from, double bearing, double meters) {
+++         double R = 6371000.0; // Earth radius in meters
+++-        double bearingRad = Math.toRadians(bearing + 180); // reverse
++++        double bearingRad = Math.toRadians(bearing);
+++ 
+++         double lat1 = Math.toRadians(from.latitude);
+++         double lon1 = Math.toRadians(from.longitude);
+++@@ -835,9 +812,13 @@
+++                 Math.sin(bearingRad) * Math.sin(meters / R) * Math.cos(lat1),
+++                 Math.cos(meters / R) - Math.sin(lat1) * Math.sin(lat2));
+++ 
+++-        LatLng result = new LatLng(Math.toDegrees(lat2), Math.toDegrees(lon2));
+++-        Log.d("SnailRepel", "moveAwayFrom result: " + result);
+++-        return result;
++++        return new LatLng(Math.toDegrees(lat2), Math.toDegrees(lon2));
++++    }
++++
++++    private double distanceBetween(LatLng from, LatLng to) {
++++        float[] results = new float[1];
++++        Location.distanceBetween(from.latitude, from.longitude, to.latitude, to.longitude, results);
++++        return results[0];
+++     }
+++     private void checkIfMinigameShouldTrigger() {
+++         SharedPreferences prefs = getSharedPreferences(MINIGAME_PREFS, MODE_PRIVATE);
+++Index: app/src/main/notes.txt
+++IDEA additional info:
+++Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+++<+>UTF-8
+++===================================================================
+++diff --git a/app/src/main/notes.txt b/app/src/main/notes.txt
+++--- a/app/src/main/notes.txt	
++++++ b/app/src/main/notes.txt	(date 1752092455603)
+++@@ -80,4 +80,5 @@
+++ persistentstate3 patch
+++     attempt 3
+++ 
+++-Suggestions
++++Suggestions1
++++    added snail repel in store
+++\ No newline at end of file

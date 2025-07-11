@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/spriteItemLayout"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:gravity="center_horizontal"
+    android:background="?android:attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true">
+
+    <ImageView
+        android:id="@+id/spriteImageView"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:scaleType="fitCenter"
+        app:srcCompat="@drawable/snail" /> <!-- Default or placeholder -->
+
+    <TextView
+        android:id="@+id/spriteNameTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginTop="4dp"
+        android:text="Snail Name"
+        android:textColor="#FFFFFF"
+        android:textSize="12sp" /> <!-- Placeholder -->
+
+    <!-- Optional: Add a view to indicate selection, e.g., a border or checkmark -->
+    <ImageView
+        android:id="@+id/selectionIndicator"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_check_circle"
+        android:visibility="gone"
+        android:layout_marginTop="4dp"
+        app:tint="#4CAF50" />
+
+</LinearLayout>

@@ -1,0 +1,81 @@
+Index: app/src/main/java/com/example/itfollows/MainActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
+--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1752067508455)
+@@ -825,20 +825,42 @@
+         }
+     }
+ 
+-    private void zoomToSnailAndPlayer() {
++    private void zoomOutToShowSnailButKeepPlayerCentered() {
+         if (mMap == null || currentPlayerLocation == null || snailPosition == null) {
+             Toast.makeText(this, "Waiting for locations...", Toast.LENGTH_SHORT).show();
+             return;
+         }
+ 
+-        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+-        builder.include(currentPlayerLocation);
+-        builder.include(snailPosition);
++        // Distance in meters between player and snail
++        float[] results = new float[1];
++        Location.distanceBetween(
++                currentPlayerLocation.latitude,
++                currentPlayerLocation.longitude,
++                snailPosition.latitude,
++                snailPosition.longitude,
++                results
++        );
++        float distanceMeters = results[0];
+ 
+-        LatLngBounds bounds = builder.build();
++        // Calculate an appropriate zoom level based on distance
++        float zoomLevel;
++        if (distanceMeters < 50) {
++            zoomLevel = 18f;
++        } else if (distanceMeters < 100) {
++            zoomLevel = 17f;
++        } else if (distanceMeters < 250) {
++            zoomLevel = 16f;
++        } else if (distanceMeters < 500) {
++            zoomLevel = 15f;
++        } else if (distanceMeters < 1000) {
++            zoomLevel = 14f;
++        } else {
++            zoomLevel = 13f;
++        }
+ 
+-        int padding = 150; // Pixels around the edge of the bounds
+-        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
++        // Animate the map, keeping player centered
++        CameraUpdate update = CameraUpdateFactory.newLatLngZoom(currentPlayerLocation, zoomLevel);
++        mMap.animateCamera(update);
+     }
+ 
+     private void resetLocalGameState() {
+Index: app/src/main/notes.txt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/notes.txt b/app/src/main/notes.txt
+--- a/app/src/main/notes.txt	
++++ b/app/src/main/notes.txt	(date 1752067543862)
+@@ -70,4 +70,9 @@
+ 
+ settingsbackground
+     fixed zoomFitButton to show snail further away when zoomed in
+-    background pictture with fade applied
+\ No newline at end of file
++    background pictture with fade applied
++
++Undid0708251736 patch
++
++zoomFitButton patch
++    fixed
+\ No newline at end of file
+diff --git a/Undid0708251736.patch b/Undid0708251736.patch
+new file mode 100644

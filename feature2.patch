@@ -1,0 +1,16 @@
+Index: app/src/main/java/com/example/itfollows/MainActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
+--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1751821676712)
+@@ -2169,6 +2169,7 @@
+ 
+     @Override
+     public void onBackPressed() {
++        super.onBackPressed();
+         SharedPreferences.Editor editor = getSharedPreferences("SnailGameState", MODE_PRIVATE).edit();
+         editor.putBoolean("snailHasSpawnedOnPause", true); // ✅ tells menu to show Continue
+         editor.apply();

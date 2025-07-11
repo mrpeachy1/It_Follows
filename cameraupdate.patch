@@ -1,0 +1,20 @@
+Index: app/src/main/java/com/example/itfollows/MainActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
+--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1751814020885)
+@@ -252,6 +252,11 @@
+         Location.distanceBetween(lat1, lng1, lat2, lng2, results);
+         return results[0]; // distance in meters
+     }
++    private LatLng biasTowardPlayer(LatLng player, LatLng snail, double bias) {
++        double lat = player.latitude * bias + snail.latitude * (1 - bias);
++        double lng = player.longitude * bias + snail.longitude * (1 - bias);
++        return new LatLng(lat, lng);
++    }
+ 
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {

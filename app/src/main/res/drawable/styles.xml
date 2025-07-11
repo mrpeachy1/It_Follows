@@ -1,0 +1,4 @@
+<style name="MySpinnerPopupTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <item name="android:popupBackground">#222222</item>
+    <item name="android:textColor">#DDFFBB</item>
+</style>
