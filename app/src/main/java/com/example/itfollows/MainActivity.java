@@ -528,7 +528,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Button buttonQuitNo = findViewById(R.id.buttonQuitNo);
 
         buttonQuitYes.setOnClickListener(v -> {
+            // Stop any running game service and clear its persisted state
             stopService(new Intent(this, GameService.class));
+            GameService.clearSavedState(this);
+
+            // Clear any saved game progress so a new game starts fresh
+            clearGameStatePrefs();
 
             Intent intent = new Intent(this, MainMenuActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
