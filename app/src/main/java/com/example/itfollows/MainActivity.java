@@ -67,6 +67,7 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import android.media.MediaPlayer;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -96,6 +97,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String KEY_LAST_PLAYED_DATE = "LastPlayedDate";
     private static final String KEY_TODAYS_TRIGGER_TIME = "TodaysTriggerTime";
     private String currentSnailSpeedSetting = "Normal Chase";
+    private boolean useImperial = false;
     private static final String TAG_MAIN_ACTIVITY = "MainActivity";
 
     private FusedLocationProviderClient fusedLocationClient;
@@ -556,6 +558,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         sharedPreferences = getSharedPreferences("GameSettings", MODE_PRIVATE);
         String loadedSnailSpriteIdentifier = sharedPreferences.getString("snailSprite", "snail_classic");
+        useImperial = "Imperial".equals(sharedPreferences.getString(SettingsActivity.KEY_MEASUREMENT_UNIT, "Metric"));
 
         RelativeLayout myContainer = (RelativeLayout) findViewById(R.id.my_container);
         powerUpPrefs = getSharedPreferences("PowerUpInventory", MODE_PRIVATE);
@@ -761,7 +764,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 // 🟩 START the cooldown UI here after purchase
                 startSnailRepelCooldownUI(buyBtn, repelCooldownText);
 
-                Toast.makeText(this, "Snail repelled " + selectedRepelDistance + " meters!", Toast.LENGTH_SHORT).show();
+                String unitMsg = useImperial ?
+                        String.format(Locale.US, "Snail repelled %.0f feet!", selectedRepelDistance * 3.28084) :
+                        "Snail repelled " + selectedRepelDistance + " meters!";
+                Toast.makeText(this, unitMsg, Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(this, "Not enough Snail Coins!", Toast.LENGTH_SHORT).show();
             }
@@ -808,7 +814,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     private void updateRepelUI(TextView distText, TextView costText) {
-        distText.setText(selectedRepelDistance + "m");
+        if (useImperial) {
+            double feet = selectedRepelDistance * 3.28084;
+            distText.setText(String.format(Locale.US, "%.0fft", feet));
+        } else {
+            distText.setText(selectedRepelDistance + "m");
+        }
         costText.setText("$" + String.format("%,d", calculateRepelCost(selectedRepelDistance)));
     }
 
@@ -1805,7 +1816,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     currentPlayerLocation.latitude, currentPlayerLocation.longitude,
                     snailPosition.latitude, snailPosition.longitude,
                     distanceResults);
-            snailDistanceText.setText(String.format("Snail: %.1f m\nSpeed: %s", distanceResults[0], currentSnailSpeedSetting));
+            if (useImperial) {
+                double feet = distanceResults[0] * 3.28084;
+                snailDistanceText.setText(String.format(Locale.US, "Snail: %.1f ft\nSpeed: %s", feet, currentSnailSpeedSetting));
+            } else {
+                snailDistanceText.setText(String.format(Locale.US, "Snail: %.1f m\nSpeed: %s", distanceResults[0], currentSnailSpeedSetting));
+            }
         } else if (snailDistanceText != null) {
             snailDistanceText.setText("Snail pushed back!");
         }
@@ -2065,7 +2081,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 if (snailDistanceText != null) {
                     String speedDebugText = String.format("Speed: %s", currentSnailSpeedSetting);
-                    snailDistanceText.setText(String.format("Snail: %.1f m\n%s", distanceToPlayerMeters, speedDebugText));
+                    if (useImperial) {
+                        double feet = distanceToPlayerMeters * 3.28084;
+                        snailDistanceText.setText(String.format(Locale.US, "Snail: %.1f ft\n%s", feet, speedDebugText));
+                    } else {
+                        snailDistanceText.setText(String.format(Locale.US, "Snail: %.1f m\n%s", distanceToPlayerMeters, speedDebugText));
+                    }
                 }
 
                 if (!isGameOver && snailHandler != null) {
@@ -2274,11 +2295,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         startActivityForResult(gameOverIntent, REQUEST_CODE_GAME_OVER);
 
         if (snailDistanceText != null) {
-            snailDistanceText.setText(String.format("%s\nTime: %02d:%02ds\nDist: %.1fm",
+            float distDisplay = useImperial ? (float) (distanceTraveledMeters * 3.28084) : distanceTraveledMeters;
+            String unit = useImperial ? "ft" : "m";
+            snailDistanceText.setText(String.format(Locale.US, "%s\nTime: %02d:%02ds\nDist: %.1f%s",
                     message.toUpperCase(),
                     (timeTakenMillis / (1000 * 60)) % 60,
                     (timeTakenMillis / 1000) % 60,
-                    distanceTraveledMeters));
+                    distDisplay, unit));
         }
         clearGameStatePrefs(); // Game is over, clear any persisted state
     }

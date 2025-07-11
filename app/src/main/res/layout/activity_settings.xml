@@ -120,6 +120,32 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
 
+            <!-- Measurement Units -->
+            <TextView
+                android:id="@+id/unitLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="144dp"
+                android:layout_marginTop="12dp"
+                android:letterSpacing="0.1"
+                android:text="UNITS"
+                android:textColor="#DDFFBB"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/snailDistanceDropdown" />
+
+            <Spinner
+                android:id="@+id/measurementUnitDropdown"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/dropdown_background"
+                android:popupTheme="@style/MySpinnerPopupTheme"
+                app:layout_constraintTop_toBottomOf="@id/unitLabel"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
             <!-- Snail Sprite -->
 
             <TextView
@@ -127,14 +153,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="128dp"
-                android:layout_marginTop="232dp"
+                android:layout_marginTop="12dp"
                 android:letterSpacing="0.1"
                 android:text="SNAIL SPRITE"
                 android:textColor="#DDFFBB"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/snailDistanceDropdown" />
+                app:layout_constraintTop_toBottomOf="@id/measurementUnitDropdown" />
 
             <HorizontalScrollView
                 android:id="@+id/snailSpriteScroll"
