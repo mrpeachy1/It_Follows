@@ -46,12 +46,12 @@ public class SettingsActivity extends AppCompatActivity {
     // Update options if they are different for Spinners
     private final String[] speedOptions = {"Sluggish Crawl","Fast Snail","Turtle Speed","Casual Walk","Power Walk","Jogging Snail","Running Snail","Olympic Sprinting Snail","Snail Drives Car"};
     private final String[] distanceOptions = {
-            "Very Close: 5–25m",       // For slow speeds like Sluggish Crawl / Fast Snail
-            "Close: 10–50m",           // For Normal Snail and Turtle speeds
-            "Distant: 50–100m",        // For casual walk to jogging
-            "Far: 100–200m",           // For jogging to running speeds
-            "Very Far: 200–400m",      // For Olympic Sprinter-level chase
-            "Extreme: 400–800m",       // For Car Speed — gives players a head start
+            "Very Close: 5–25m / 16–80ft",       // For slow speeds like Sluggish Crawl / Fast Snail
+            "Close: 10–50m / 30–160ft",          // For Normal Snail and Turtle speeds
+            "Distant: 50–100m / 160–330ft",      // For casual walk to jogging
+            "Far: 100–200m / 0.06–0.12mi",       // For jogging to running speeds
+            "Very Far: 200–400m / 0.12–0.25mi",  // For Olympic Sprinter-level chase
+            "Extreme: 400–800m / 0.25–0.50mi",     // For Car Speed — gives players a head start
     };
     private final String[] unitOptions = {"Metric", "Imperial"};
     public static final String DEFAULT_SNAIL_SPRITE_IDENTIFIER = "snail_classic";

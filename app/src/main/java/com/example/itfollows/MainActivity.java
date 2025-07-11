@@ -528,7 +528,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Button buttonQuitNo = findViewById(R.id.buttonQuitNo);
 
         buttonQuitYes.setOnClickListener(v -> {
+            // Stop any running game service and clear its persisted state
             stopService(new Intent(this, GameService.class));
+            GameService.clearSavedState(this);
+
+            // Clear any saved game progress so a new game starts fresh
+            clearGameStatePrefs();
 
             Intent intent = new Intent(this, MainMenuActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -559,7 +564,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         sharedPreferences = getSharedPreferences("GameSettings", MODE_PRIVATE);
         String loadedSnailSpriteIdentifier = sharedPreferences.getString("snailSprite", "snail_classic");
         useImperial = "Imperial".equals(sharedPreferences.getString(SettingsActivity.KEY_MEASUREMENT_UNIT, "Metric"));
-
         RelativeLayout myContainer = (RelativeLayout) findViewById(R.id.my_container);
         powerUpPrefs = getSharedPreferences("PowerUpInventory", MODE_PRIVATE);
         powerUpEditor = powerUpPrefs.edit();
