@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private long snailSpeedBoostEndTimeMs = 0;
     private Handler beaconSpawnHandler = new Handler();
     private Runnable beaconSpawnRunnable;
+
     private static final String HOLD_MINIGAME_PREFS = "HoldMinigamePrefs";
     private static final String KEY_LAST_HOLD_PLAYED_DATE = "LastHoldMinigamePlayed";
     private static final long TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000L;
@@ -258,7 +259,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             snailBeaconMarker.remove();
             pushSnailBack(50);
             Toast.makeText(this, "You reached the beacon! The snail is pushed back.", Toast.LENGTH_SHORT).show();
-
             scheduleBeaconSpawn();
         } else if (snailDist < 10f) {
             beaconActive = false;
@@ -268,6 +268,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             scheduleBeaconSpawn();
         }
     }
+
     private void scheduleBeaconSpawn() {
         long minDelay = TimeUnit.HOURS.toMillis(1);
         long maxDelay = TimeUnit.HOURS.toMillis(3);
@@ -545,9 +546,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Toast.makeText(this, "Waiting for locations...", Toast.LENGTH_SHORT).show();
                 return;
             }
+
+            // Re-enable following the player and zoom out enough so the snail is visible
             isFollowingPlayer = true;
             zoomOutToShowSnailButKeepPlayerCentered();
-                    });
+        });
 
 
 
@@ -691,7 +694,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (playerPosition != null && snailPosition != null) {
             spawnSnailBeacon();
         }
-        spawnSnailBeacon();
+        scheduleBeaconSpawn();
         snailDistanceText = findViewById(R.id.snailDistanceText); // Ensure this ID exists
         snailTrailPoints = new ArrayList<>();
 
@@ -1951,6 +1954,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
 
+
         snailHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -1961,6 +1965,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 float snailMetersPerSecond = getSnailMetersPerSecond(currentSnailSpeedSetting) * snailSpeedMultiplier;
                 float snailMetersPerMillisecond = snailMetersPerSecond / 1000f;
                 float snailMoveStepPerUpdate = snailMetersPerMillisecond * updateIntervalMs / 111_111f;
+
                 LatLng target = isDecoyActive && SystemClock.elapsedRealtime() < decoyEndTimeMs
                         ? decoyPosition
                         : currentPlayerLocation;

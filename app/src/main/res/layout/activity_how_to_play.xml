@@ -47,14 +47,14 @@ The snail disappears from the map temporarily.\n\n
 🎭 Fake Snail\n
 It spawns a false marker to mislead you.\n\n
   ⚡ Teleport\n
-It jumps forward a short distance without warning.\n\n
-🐌 Snail Beacon\n
-Random beacons appear on the map during the day. Reach one before the snail
-to push it back 50 meters. If the snail gets there first, its speed doubles
-for the next 24 hours.\n\n
-Good luck.\n
-It’s slow…\n
-…but it never, ever stops."
+  It jumps forward a short distance without warning.\n\n
+  🐌 Snail Beacon Event\n
+  Random beacons appear on the map during the day. Reach one before the snail
+  to push it back 50 meters. If the snail gets there first, its speed doubles
+  for the next 24 hours.\n\n
+  Good luck.\n
+  It’s slow…\n
+  …but it never, ever stops."
 
             />
 
