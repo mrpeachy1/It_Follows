@@ -1261,9 +1261,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void activateDecoyShell() {
         long baseDuration = 15_000; // 15 seconds
         long adjusted = (long) (baseDuration * getPowerUpDurationMultiplier());
-        saltBombEndTimeMs = SystemClock.elapsedRealtime() + adjusted;
+        decoyEndTimeMs = SystemClock.elapsedRealtime() + adjusted;
+        isDecoyActive = true;
         isDecoyShellActive = true;
-        freezeSnailFor(adjusted);
+        if (currentPlayerLocation != null) {
+            decoyPosition = new LatLng(currentPlayerLocation.latitude,
+                    currentPlayerLocation.longitude);
+        }
     }
 
     private void activateSaltBomb() {
@@ -1966,9 +1970,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 float snailMetersPerMillisecond = snailMetersPerSecond / 1000f;
                 float snailMoveStepPerUpdate = snailMetersPerMillisecond * updateIntervalMs / 111_111f;
 
-                LatLng target = isDecoyActive && SystemClock.elapsedRealtime() < decoyEndTimeMs
-                        ? decoyPosition
-                        : currentPlayerLocation;
+                if (isDecoyActive && SystemClock.elapsedRealtime() > decoyEndTimeMs) {
+                    isDecoyActive = false;
+                    Toast.makeText(MainActivity.this, "Decoy Shell wore off!", Toast.LENGTH_SHORT).show();
+                }
+
+                LatLng target = isDecoyActive ? decoyPosition : currentPlayerLocation;
                 if (isGameOver || currentPlayerLocation == null || snailPosition == null || mMap == null) {
                     return;
 
