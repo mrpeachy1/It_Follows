@@ -1,0 +1,18 @@
+Index: app/src/main/java/com/example/itfollows/MainActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
+--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1752246254690)
+@@ -2413,7 +2413,8 @@
+         // current elapsed realtime value so we can properly resume later.
+         saveGameState();
+ 
+-            updateSnailIcon(); // Optional: refresh the sprite
++        if (snailMarker != null && hasSpawnedSnail) {
++            updateSnailIcon(); // Optional: refresh the sprite icon while paused
+         }
+ 
+         LocalBroadcastManager.getInstance(this).registerReceiver(gameOverReceiver,
