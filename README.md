@@ -16,15 +16,15 @@ A GPS-based horror game for Android where a relentless snail slowly chases you i
 - 🌙 Night Mode: faster snail, darker map, whispers intensify  
 - 🧟 Multiple snail variants (classic, zombie, nightmare, etc.)  
 - 💾 Game state auto-resume and continue functionality
-
-## 🧙 Credits
-Concept inspired by It Follows
-Code & Design: [mrpeachy1]
-Pixel Art: [mrpeachy1]
-Sound FX: [Horror Ambient Pack by Puritune]
-Map SDK: Google Maps Platform
 ---
+## 🧙 Credits
+- Concept inspired by It Follows
+- Code & Design: [mrpeachy1]
+- Pixel Art: [mrpeachy1]
+- Sound FX: [Horror Ambient Pack by Puritune]
+- Map SDK: Google Maps Platform
 
+---
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -39,11 +39,3 @@ Map SDK: Google Maps Platform
 ```bash
 git clone https://github.com/mrpeachy1/it-follows-snail.git
 cd it-follows-snail
-
-
-🧙 Credits
-Concept inspired by It Follows
-Code & Design: [mrpeachy1]
-Pixel Art: [mrpeachy1]
-Sound FX: [Horror Ambient Pack by Puritune]
-Map SDK: Google Maps Platform
