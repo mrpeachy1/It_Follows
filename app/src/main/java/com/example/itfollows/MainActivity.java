@@ -536,29 +536,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Zoom button setup
         ImageButton zoomFitButton = findViewById(R.id.zoomFitButton);
         zoomFitButton.setOnClickListener(v -> {
-            zoomOutToShowSnailButKeepPlayerCentered();
             if (mMap == null || currentPlayerLocation == null || snailPosition == null) {
                 Toast.makeText(this, "Waiting for locations...", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            LatLngBounds.Builder builder = new LatLngBounds.Builder();
-            builder.include(currentPlayerLocation);
-            builder.include(snailPosition);
-
-            LatLngBounds bounds = builder.build();
-
-            View mapView = getSupportFragmentManager().findFragmentById(R.id.map).getView();
-            if (mapView != null) {
-                mapView.post(() -> {
-                    int padding = 200; // Increase if needed
-                    try {
-                        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
-                    } catch (IllegalStateException e) {
-                        Log.e("ZoomFit", "Map size not ready for bounds, retrying...", e);
-                    }
-                });
-            }
+            // Re-enable following the player and zoom out enough so the snail is visible
+            isFollowingPlayer = true;
+            zoomOutToShowSnailButKeepPlayerCentered();
         });
 
 
