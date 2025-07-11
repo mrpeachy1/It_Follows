@@ -76,6 +76,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LatLng beaconPosition;
     private boolean beaconActive = false;
     private float snailSpeedMultiplier = 1.0f;
+    private boolean snailSpeedBoostActive = false;
+    private long snailSpeedBoostEndTimeMs = 0;
+    private Handler beaconSpawnHandler = new Handler();
+    private Runnable beaconSpawnRunnable;
 
     private static final String HOLD_MINIGAME_PREFS = "HoldMinigamePrefs";
     private static final String KEY_LAST_HOLD_PLAYED_DATE = "LastHoldMinigamePlayed";
@@ -253,28 +257,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (playerDist < 10f) {
             beaconActive = false;
             snailBeaconMarker.remove();
-            pushSnailBack(50); // 👈 custom pushback logic
+            pushSnailBack(50);
             Toast.makeText(this, "You reached the beacon! The snail is pushed back.", Toast.LENGTH_SHORT).show();
-
-            // 🔁 Respawn another beacon in 60 seconds
-            new Handler().postDelayed(() -> {
-                if (!beaconActive) {
-                    spawnSnailBeacon();
-                }
-            }, 60000);
+            scheduleBeaconSpawn();
         } else if (snailDist < 10f) {
             beaconActive = false;
             snailBeaconMarker.remove();
-            boostSnailSpeed();
+            boostSnailSpeedTemporarily();
             Toast.makeText(this, "The snail consumed the beacon! It moves faster...", Toast.LENGTH_SHORT).show();
-
-            // 🔁 Respawn another beacon in 60 seconds
-            new Handler().postDelayed(() -> {
-                if (!beaconActive) {
-                    spawnSnailBeacon();
-                }
-            }, 60000);
+            scheduleBeaconSpawn();
         }
+    }
+
+    private void scheduleBeaconSpawn() {
+        long minDelay = TimeUnit.HOURS.toMillis(1);
+        long maxDelay = TimeUnit.HOURS.toMillis(3);
+        long delay = minDelay + (long) (Math.random() * (maxDelay - minDelay));
+        if (beaconSpawnRunnable == null) {
+            beaconSpawnRunnable = () -> {
+                spawnSnailBeacon();
+                scheduleBeaconSpawn();
+            };
+        }
+        beaconSpawnHandler.removeCallbacks(beaconSpawnRunnable);
+        beaconSpawnHandler.postDelayed(beaconSpawnRunnable, delay);
     }
 
     private void applyNightMapStyle() {
@@ -686,8 +692,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
         if (playerPosition != null && snailPosition != null) {
-            spawnSnailBeacon(); // 💡 Only once per session for now
+            spawnSnailBeacon();
         }
+        scheduleBeaconSpawn();
         snailDistanceText = findViewById(R.id.snailDistanceText); // Ensure this ID exists
         snailTrailPoints = new ArrayList<>();
 
@@ -695,7 +702,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         currentSnailSpeedSetting = gameSettingsPrefs.getString("snailSpeed", "Normal Chase");
         String snailDistanceTextSetting = gameSettingsPrefs.getString("snailDistance", "Distant");
 
-        float snailMetersPerSecond = getSnailMetersPerSecond(currentSnailSpeedSetting);
+        float snailMetersPerSecond = getSnailMetersPerSecond(currentSnailSpeedSetting) * snailSpeedMultiplier;
         float snailMetersPerMillisecond = snailMetersPerSecond / 1000f;
         snailDegreesPerMillisecond = snailMetersPerMillisecond / 111_111f; // ~degrees/ms
 
@@ -1314,8 +1321,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (snailTrailPoints.size() > MAX_TRAIL_POINTS) snailTrailPoints.remove(0);
         if (snailTrail != null) snailTrail.setPoints(snailTrailPoints);
     }
-    private void boostSnailSpeed() {
-        snailSpeedMultiplier *= 1.3f; // Or directly increase the value
+    private void boostSnailSpeedTemporarily() {
+        snailSpeedMultiplier *= 2f;
+        snailSpeedBoostActive = true;
+        snailSpeedBoostEndTimeMs = System.currentTimeMillis() + TWENTY_FOUR_HOURS;
     }
     private void updatePowerUpUI() {
         TextView saltBombLabel = findViewById(R.id.saltBombLabel);
@@ -1946,14 +1955,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
 
-        float snailMetersPerSecond = getSnailMetersPerSecond(currentSnailSpeedSetting);
-        float snailMetersPerMillisecond = snailMetersPerSecond / 1000f;
-        final float snailMoveStepPerUpdate = snailMetersPerMillisecond * 250f / 111_111f; // 250ms tick converted to degrees
-
-
         snailHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
+                if (snailSpeedBoostActive && System.currentTimeMillis() > snailSpeedBoostEndTimeMs) {
+                    snailSpeedMultiplier /= 2f;
+                    snailSpeedBoostActive = false;
+                }
+                float snailMetersPerSecond = getSnailMetersPerSecond(currentSnailSpeedSetting) * snailSpeedMultiplier;
+                float snailMetersPerMillisecond = snailMetersPerSecond / 1000f;
+                float snailMoveStepPerUpdate = snailMetersPerMillisecond * updateIntervalMs / 111_111f;
+
                 LatLng target = isDecoyActive && SystemClock.elapsedRealtime() < decoyEndTimeMs
                         ? decoyPosition
                         : currentPlayerLocation;
@@ -2068,7 +2080,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d("RecalculateSnail", "Current player position: " + currentPlayerLocation);
 
         // Snail speed in degrees per MILLISECOND for this calculation
-        float snailMetersPerSecond = getSnailMetersPerSecond(currentSnailSpeedSetting);
+        float snailMetersPerSecond = getSnailMetersPerSecond(currentSnailSpeedSetting) * snailSpeedMultiplier;
         float snailMetersPerMillisecond = snailMetersPerSecond / 1000f;
         float snailDegreesPerMillisecond = snailMetersPerMillisecond / 111_111f;
 
