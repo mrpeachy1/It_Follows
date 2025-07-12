@@ -107,6 +107,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private long gameTickIntervalMillis = 2000;
     private LocationCallback locationCallback;
 
+    // Track whether the activity is currently in the background
+    private boolean isInBackground = false;
+
     private LatLng currentPlayerLocation;
     // private Marker playerMarker; // Player marker is usually the blue dot from setMyLocationEnabled
     private Marker snailMarker;
@@ -917,17 +920,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // If it's time to trigger and not already played
         if (currentTime >= triggerTime && lastPlayedDate < todayStart && todaysGame != null) {
             Intent intent;
+            Class<?> activityClass;
             int requestCode;
 
             if (todaysGame.equals("slime")) {
+                activityClass = SlimeTapMinigameActivity.class;
                 intent = new Intent(this, SlimeTapMinigameActivity.class);
                 requestCode = 222;
             } else {
+                activityClass = CoinFlipMinigameActivity.class;
                 intent = new Intent(this, CoinFlipMinigameActivity.class);
                 requestCode = 333;
             }
 
-            startActivityForResult(intent, requestCode);
+            if (isInBackground) {
+                showMinigameReadyNotification(activityClass);
+            } else {
+                startActivityForResult(intent, requestCode);
+            }
             prefs.edit().putLong(KEY_LAST_PLAYED_DATE, currentTime).apply();
         }
 
@@ -962,9 +972,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Only trigger if we're past the trigger time and haven’t played yet today
         if (currentTime >= triggerTime && lastPlayedDate < todayStartMillis) {
-            // Launch the minigame
             Intent intent = new Intent(this, SlimeTapMinigameActivity.class);
-            startActivityForResult(intent, 222);
+            if (isInBackground) {
+                showMinigameReadyNotification(SlimeTapMinigameActivity.class);
+            } else {
+                startActivityForResult(intent, 222);
+            }
         }
     }
 
@@ -2295,6 +2308,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onStart() { // Or onResume
         super.onStart();
+        // Activity is visible again
+        isInBackground = false;
         IntentFilter filter = new IntentFilter();
         filter.addAction(GameService.ACTION_GAME_STATE_UPDATE);
         filter.addAction(GameService.ACTION_GAME_OVER);
@@ -2315,6 +2330,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onStop() { // Or onPause
         super.onStop();
+        // Mark that the activity is no longer in the foreground
+        isInBackground = true;
         LocalBroadcastManager.getInstance(this).unregisterReceiver(gameStateReceiver);
     }
 
@@ -2443,6 +2460,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onResume() {
         super.onResume();
+        // Activity returned to foreground
+        isInBackground = false;
         SharedPreferences.Editor editor = getSharedPreferences("GameSettings", MODE_PRIVATE).edit();
         editor.putBoolean("vibration", true);
         editor.apply();
@@ -2521,6 +2540,42 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .build();
 
         notificationManager.notify(1001, notification);
+    }
+
+    // Show a notification that launches a specific minigame when tapped
+    private void showMinigameReadyNotification(Class<?> activityClass) {
+        String channelId = "snail_channel_id";
+        String channelName = "Snail Alerts";
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    channelId,
+                    channelName,
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        Intent intent = new Intent(this, activityClass);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_IMMUTABLE
+        );
+
+        Notification notification = new NotificationCompat.Builder(this, channelId)
+                .setSmallIcon(R.drawable.snail)
+                .setContentTitle("The Snail Wants to Play")
+                .setContentText("Tap to start the minigame!")
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .build();
+
+        notificationManager.notify(1002, notification);
     }
     private void pushSnailBack() {
         double meters = 25 + Math.random() * 50; // Push back 20–40 meters
