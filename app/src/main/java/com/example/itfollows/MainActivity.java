@@ -394,30 +394,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        SharedPreferences statePrefs = getSharedPreferences("SnailGameState", MODE_PRIVATE);
-        boolean hasSavedSnail = statePrefs.contains("snail_lat") && statePrefs.contains("player_lat");
+        SharedPreferences statePrefs = getSharedPreferences(PREFS_GAME_STATE, MODE_PRIVATE);
+        boolean hasSavedGame = statePrefs.contains(KEY_SNAIL_LAT_BEFORE_PAUSE)
+                && statePrefs.contains(KEY_PLAYER_LAT_BEFORE_PAUSE);
         boolean isNewGame = getIntent().getBooleanExtra("isNewGame", false); // safer default
 
         Log.d("MainActivity", "isNewGame = " + isNewGame);
-        Log.d("MainActivity", "hasSavedSnail = " + hasSavedSnail);
-        if (!hasSavedSnail) {
+        Log.d("MainActivity", "hasSavedSnail = " + hasSavedGame);
+        if (!hasSavedGame) {
             Log.d("MainActivity", "No saved state found. Proceeding with isNewGame = " + isNewGame);
         } else {
             Log.d("MainActivity", "Saved snail state detected. Forcing isNewGame = false");
             isNewGame = false; // 👈 OVERRIDE to prevent false reset
         }
-        if (isNewGame || !hasSavedSnail) {
-            // Fresh game setup
+        if (isNewGame && !hasSavedGame) {
+            // Fresh game setup. Snail will spawn once map and player location are ready.
             statePrefs.edit().clear().apply();
             getSharedPreferences("PowerUpInventory", MODE_PRIVATE).edit().clear().apply();
             resetLocalGameState();
-            spawnSnailAtRandomLocation();
-            Log.d("MainActivity", "New game: reset state and spawned snail.");
-        } else {
-            // Resume previous state
+            Log.d("MainActivity", "New game: reset state. Snail will spawn when ready.");
+        } else if (hasSavedGame) {
+            // Resume previous state but delay chase until map/location available
             loadGameState();
-            startSnailChase();
-            Log.d("MainActivity", "Resumed saved game state.");
+            Log.d("MainActivity", "Loaded saved game state.");
         }
         getSharedPreferences("PowerUpCooldowns", MODE_PRIVATE).edit().clear().apply(); // ✅ Reset cooldowns
 
@@ -431,18 +430,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (!currencyPrefs.contains("snailCoins")) {
             currencyEditor.putInt("snailCoins", 1_000_000);
             currencyEditor.apply();
-        }
-
-        // 🔥 Clear any previous saved game state to force a fresh game
-        if (isNewGame) {
-            Log.d("MainActivity", "Truly new game, clearing state...");
-            statePrefs.edit().clear().apply(); // Clear saved state
-            getSharedPreferences("PowerUpInventory", MODE_PRIVATE).edit().clear().apply();
-            resetLocalGameState(); // if you use this method
-            spawnSnailAtRandomLocation(); // your spawn logic
-        } else {
-            loadGameState(); // resume snail + player
-            startSnailChase(); // resume movement logic
         }
 
         snailCoinBalance = getSharedPreferences("SnailGameState", MODE_PRIVATE)
@@ -598,10 +585,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             startActivityForResult(intent, 333);
         });
 
-        // 🧼 Fresh game start: no resume logic
-        resetLocalGameState();
-        spawnSnailAtRandomLocation();
-        startSnailChase();
 
         useShieldBtn.setOnClickListener(v -> {
             int count = powerUpPrefs.getInt("shellShield", 0);
@@ -2318,8 +2301,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         checkAndActivateNightMode();
         if (snailPosition != null) {
             updateSnailMarker(); // restore snail
-        } else if (isNewGame) {
-            spawnSnailAtRandomLocation();
         }
         // mMap.getUiSettings().setCompassEnabled(true); // Optional: show compass
         if (snailPosition != null && snailMarker == null) {
