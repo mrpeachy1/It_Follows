@@ -402,30 +402,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        SharedPreferences statePrefs = getSharedPreferences("SnailGameState", MODE_PRIVATE);
-        boolean hasSavedSnail = statePrefs.contains("snail_lat") && statePrefs.contains("player_lat");
+        SharedPreferences statePrefs = getSharedPreferences(PREFS_GAME_STATE, MODE_PRIVATE);
+        boolean hasSavedGame = statePrefs.contains(KEY_SNAIL_LAT_BEFORE_PAUSE)
+                && statePrefs.contains(KEY_PLAYER_LAT_BEFORE_PAUSE);
         boolean isNewGame = getIntent().getBooleanExtra("isNewGame", false); // safer default
 
         Log.d("MainActivity", "isNewGame = " + isNewGame);
-        Log.d("MainActivity", "hasSavedSnail = " + hasSavedSnail);
-        if (!hasSavedSnail) {
+        Log.d("MainActivity", "hasSavedSnail = " + hasSavedGame);
+        if (!hasSavedGame) {
             Log.d("MainActivity", "No saved state found. Proceeding with isNewGame = " + isNewGame);
         } else {
             Log.d("MainActivity", "Saved snail state detected. Forcing isNewGame = false");
             isNewGame = false; // 👈 OVERRIDE to prevent false reset
         }
-        if (isNewGame || !hasSavedSnail) {
-            // Fresh game setup
+        if (isNewGame && !hasSavedGame) {
+            // Fresh game setup. Snail will spawn once map and player location are ready.
             statePrefs.edit().clear().apply();
             getSharedPreferences("PowerUpInventory", MODE_PRIVATE).edit().clear().apply();
             resetLocalGameState();
-            spawnSnailAtRandomLocation();
-            Log.d("MainActivity", "New game: reset state and spawned snail.");
-        } else {
-            // Resume previous state
+            Log.d("MainActivity", "New game: reset state. Snail will spawn when ready.");
+        } else if (hasSavedGame) {
+            // Resume previous state but delay chase until map/location available
             loadGameState();
-            startSnailChase();
-            Log.d("MainActivity", "Resumed saved game state.");
+            Log.d("MainActivity", "Loaded saved game state.");
         }
         getSharedPreferences("PowerUpCooldowns", MODE_PRIVATE).edit().clear().apply(); // ✅ Reset cooldowns
 
@@ -439,18 +438,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (!currencyPrefs.contains("snailCoins")) {
             currencyEditor.putInt("snailCoins", 1_000_000);
             currencyEditor.apply();
-        }
-
-        // 🔥 Clear any previous saved game state to force a fresh game
-        if (isNewGame) {
-            Log.d("MainActivity", "Truly new game, clearing state...");
-            statePrefs.edit().clear().apply(); // Clear saved state
-            getSharedPreferences("PowerUpInventory", MODE_PRIVATE).edit().clear().apply();
-            resetLocalGameState(); // if you use this method
-            spawnSnailAtRandomLocation(); // your spawn logic
-        } else {
-            loadGameState(); // resume snail + player
-            startSnailChase(); // resume movement logic
         }
 
         snailCoinBalance = getSharedPreferences("SnailGameState", MODE_PRIVATE)
@@ -601,11 +588,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Intent intent = new Intent(MainActivity.this, CoinFlipMinigameActivity.class);
             startActivityForResult(intent, 333);
         });
-
-        // 🧼 Fresh game start: no resume logic
-        resetLocalGameState();
-        spawnSnailAtRandomLocation();
-        startSnailChase();
 
         useShieldBtn.setOnClickListener(v -> {
             int count = powerUpPrefs.getInt("shellShield", 0);
@@ -1594,27 +1576,27 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         double min, max;
 
         switch (distanceLabel) {
-            case "Very Close: 5–25m":
+            case "Very Close: 5–25m / 16–80ft":
                 min = 5;
                 max = 25;
                 break;
-            case "Close: 10–50m":
+            case "Close: 10–50m / 30–160ft":
                 min = 10;
                 max = 50;
                 break;
-            case "Distant: 50–100m":
+            case "Distant: 50–100m / 160–330ft":
                 min = 50;
                 max = 100;
                 break;
-            case "Far: 100–200m":
+            case "Far: 100–200m / 0.06–0.12mi":
                 min = 100;
                 max = 200;
                 break;
-            case "Very Far: 200–400m":
+            case "Very Far: 200–400m / 0.12–0.25mi":
                 min = 200;
                 max = 400;
                 break;
-            case "Extreme: 400–800m":
+            case "Extreme: 400–800m / 0.25–0.50mi":
                 min = 400;
                 max = 800;
                 break;
@@ -2348,8 +2330,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         checkAndActivateNightMode();
         if (snailPosition != null) {
             updateSnailMarker(); // restore snail
-        } else if (isNewGame) {
-            spawnSnailAtRandomLocation();
         }
         // mMap.getUiSettings().setCompassEnabled(true); // Optional: show compass
         if (snailPosition != null && snailMarker == null) {
