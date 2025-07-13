@@ -389,6 +389,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final int MAX_REPEL = 200;
     private static final int REPEL_INCREMENT = 50;
     private static final long REPEL_COOLDOWN_MS = 86_400_000L; // 24 hours
+    private static final long SHELL_SWAP_COOLDOWN_MS = 86_400_000L; // 24 hours
 
     private void updateSnailCoinBalance(int newAmount) {
         snailCoinBalance = newAmount;
@@ -527,6 +528,38 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Toast.makeText(this, "Not enough Snail Coins!", Toast.LENGTH_SHORT).show();
             }
         });
+
+        Button buyWhistleBtn = findViewById(R.id.buyWhistleBtn);
+        buyWhistleBtn.setOnClickListener(v -> {
+            if (getSnailCoinBalance() >= 3000) {
+                updateSnailCoinBalance(getSnailCoinBalance() - 3000);
+                lureSnailToRandomLocation();
+                Toast.makeText(this, "You blew the Snail Whistle!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Not enough Snail Coins!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        Button buyShellSwapBtn = findViewById(R.id.buyShellSwapBtn);
+        buyShellSwapBtn.setOnClickListener(v -> {
+            SharedPreferences cooldownPrefs = getSharedPreferences("PowerUpCooldowns", MODE_PRIVATE);
+            long lastUsed = cooldownPrefs.getLong("shellSwapLastUsed", 0);
+            if (System.currentTimeMillis() - lastUsed < SHELL_SWAP_COOLDOWN_MS) {
+                Toast.makeText(this, "Shell Swap is recharging...", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (getSnailCoinBalance() >= 15000) {
+                updateSnailCoinBalance(getSnailCoinBalance() - 15000);
+                performShellSwap();
+                cooldownPrefs.edit().putLong("shellSwapLastUsed", System.currentTimeMillis()).apply();
+                startShellSwapCooldownUI(buyShellSwapBtn);
+                Toast.makeText(this, "You swapped shells with the snail!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Not enough Snail Coins!", Toast.LENGTH_SHORT).show();
+            }
+        });
+        startShellSwapCooldownUI(buyShellSwapBtn);
         Button buttonQuitYes = findViewById(R.id.buttonQuitYes);
         Button buttonQuitNo = findViewById(R.id.buttonQuitNo);
 
@@ -853,6 +886,62 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         snailPosition = newSnailPos;
         if (snailMarker != null) snailMarker.setPosition(snailPosition);
+    }
+
+    private void lureSnailToRandomLocation() {
+        if (mMap == null || currentPlayerLocation == null) return;
+        Random random = new Random();
+        double latOffset = (random.nextDouble() - 0.5) * 0.02; // ~2km range
+        double lngOffset = (random.nextDouble() - 0.5) * 0.02;
+        snailPosition = new LatLng(currentPlayerLocation.latitude + latOffset,
+                currentPlayerLocation.longitude + lngOffset);
+        if (snailMarker != null) snailMarker.setPosition(snailPosition);
+    }
+
+    private void performShellSwap() {
+        if (snailPosition == null || currentPlayerLocation == null) return;
+
+        LatLng oldSnailPos = snailPosition;
+        LatLng oldPlayerPos = currentPlayerLocation;
+
+        snailPosition = oldPlayerPos;
+        if (snailMarker != null) snailMarker.setPosition(snailPosition);
+
+        currentPlayerLocation = oldSnailPos;
+        playerPosition = oldSnailPos;
+        if (playerMarker != null) playerMarker.setPosition(oldSnailPos);
+        if (mMap != null) mMap.animateCamera(CameraUpdateFactory.newLatLng(oldSnailPos));
+    }
+
+    private void startShellSwapCooldownUI(Button swapButton) {
+        long lastUsed = getSharedPreferences("PowerUpCooldowns", MODE_PRIVATE)
+                .getLong("shellSwapLastUsed", 0);
+        long elapsed = System.currentTimeMillis() - lastUsed;
+        long remaining = SHELL_SWAP_COOLDOWN_MS - elapsed;
+
+        if (remaining > 0) {
+            swapButton.setEnabled(false);
+            swapButton.setAlpha(0.5f);
+
+            new CountDownTimer(remaining, 1000) {
+                public void onTick(long millisUntilFinished) {
+                    long seconds = (millisUntilFinished / 1000) % 60;
+                    long minutes = (millisUntilFinished / 1000 / 60) % 60;
+                    long hours = (millisUntilFinished / 1000 / 60 / 60);
+                    swapButton.setText("Recharging... " + hours + "h " + minutes + "m " + seconds + "s");
+                }
+
+                public void onFinish() {
+                    swapButton.setEnabled(true);
+                    swapButton.setAlpha(1f);
+                    swapButton.setText("🔀 Shell Swap (15,000)");
+                }
+            }.start();
+        } else {
+            swapButton.setEnabled(true);
+            swapButton.setAlpha(1f);
+            swapButton.setText("🔀 Shell Swap (15,000)");
+        }
     }
 
     private double getBearing(LatLng from, LatLng to) {

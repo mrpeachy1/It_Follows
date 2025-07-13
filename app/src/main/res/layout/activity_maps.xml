@@ -218,6 +218,24 @@
             android:background="@drawable/button_translucent_bg"
             android:textColor="#FFFFFF"
             android:layout_marginTop="8dp" />
+
+        <Button
+            android:id="@+id/buyWhistleBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📯 Buy Snail Whistle (3,000)"
+            android:background="@drawable/button_translucent_bg"
+            android:textColor="#FFFFFF"
+            android:layout_marginTop="8dp" />
+
+        <Button
+            android:id="@+id/buyShellSwapBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🔀 Shell Swap (15,000)"
+            android:background="@drawable/button_translucent_bg"
+            android:textColor="#FFFFFF"
+            android:layout_marginTop="8dp" />
         <!-- 🧲 Snail Repel Section -->
         <TextView
             android:id="@+id/repelLabel"
