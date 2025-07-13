@@ -196,6 +196,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private boolean snailInvisible = false;
 
+    // --- Shell Split Ability ---
+    private boolean shellSplitActive = false;
+    private Marker splitMarker1, splitMarker2;
+    private LatLng splitPos1, splitPos2;
+    private long shellSplitEndTimeMs;
+    private static final long SHELL_SPLIT_DURATION_MS = 60 * 60 * 1000L; // 60 minutes
+
 
     private void updateSnailIcon() {
         // Implement the logic to update the snail's icon here.
@@ -1996,6 +2003,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         snailHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
+                if (shellSplitActive) {
+                    handleShellSplit(this);
+                    return;
+                }
                 if (snailSpeedBoostActive && System.currentTimeMillis() > snailSpeedBoostEndTimeMs) {
                     snailSpeedMultiplier /= 2f;
                     snailSpeedBoostActive = false;
@@ -2708,7 +2719,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
     private void triggerRandomSnailAbility() {
         Random rand = new Random();
-        int abilityIndex = rand.nextInt(3); // 0 = teleport, 1 = decoy, 2 = vanish
+        int abilityIndex = rand.nextInt(4); // 0 = teleport, 1 = decoy, 2 = vanish, 3 = shell split
 
         switch (abilityIndex) {
             case 0:
@@ -2719,6 +2730,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case 2:
                 vanishSnailTemporarily();
+                break;
+            case 3:
+                triggerShellSplit();
                 break;
         }
     }
@@ -2843,6 +2857,85 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             snailInvisible = false;
             Toast.makeText(this, "The snail reappeared...", Toast.LENGTH_SHORT).show();
         }, 20000); // 20 seconds
+    }
+
+    private void triggerShellSplit() {
+        if (shellSplitActive || snailPosition == null || mMap == null) return;
+
+        shellSplitActive = true;
+        shellSplitEndTimeMs = SystemClock.elapsedRealtime() + SHELL_SPLIT_DURATION_MS;
+
+        int spriteResId = getResources().getIdentifier(loadedSnailSpriteIdentifier, "drawable", getPackageName());
+        if (spriteResId == 0) spriteResId = R.drawable.snail;
+        Drawable drawable = ContextCompat.getDrawable(this, spriteResId);
+        if (!(drawable instanceof BitmapDrawable)) return;
+        Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
+        Bitmap scaled = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth() / 2, bitmap.getHeight() / 2, false);
+        BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(scaled);
+
+        double offsetMeters = 5.0;
+        double angle = Math.random() * 2 * Math.PI;
+        double latOffset = metersToLatitudeDegrees(offsetMeters * Math.sin(angle));
+        double lngOffset = metersToLongitudeDegrees(offsetMeters * Math.cos(angle), snailPosition.latitude);
+
+        splitPos1 = new LatLng(snailPosition.latitude + latOffset, snailPosition.longitude + lngOffset);
+        splitPos2 = new LatLng(snailPosition.latitude - latOffset, snailPosition.longitude - lngOffset);
+
+        splitMarker1 = mMap.addMarker(new MarkerOptions().position(splitPos1).icon(icon).title("Split Snail"));
+        splitMarker2 = mMap.addMarker(new MarkerOptions().position(splitPos2).icon(icon).title("Split Snail"));
+
+        if (snailMarker != null) snailMarker.setVisible(false);
+    }
+
+    private LatLng moveTowardsWithOffset(LatLng from, LatLng to, double stepMeters, double angleOffsetRad) {
+        double angle = Math.atan2(to.latitude - from.latitude, to.longitude - from.longitude);
+        angle += angleOffsetRad;
+
+        double latOffset = metersToLatitudeDegrees(stepMeters * Math.sin(angle));
+        double lngOffset = metersToLongitudeDegrees(stepMeters * Math.cos(angle), from.latitude);
+        return new LatLng(from.latitude + latOffset, from.longitude + lngOffset);
+    }
+
+    private void handleShellSplit(Runnable continuation) {
+        LatLng target = isDecoyActive && SystemClock.elapsedRealtime() < decoyEndTimeMs
+                ? decoyPosition
+                : currentPlayerLocation;
+
+        float baseSpeed = getSnailMetersPerSecond(currentSnailSpeedSetting) * snailSpeedMultiplier;
+        double step = baseSpeed * updateIntervalMs / 1000.0 / 2.0; // half speed
+
+        splitPos1 = moveTowardsWithOffset(splitPos1, target, step, Math.toRadians(10));
+        splitPos2 = moveTowardsWithOffset(splitPos2, target, step, Math.toRadians(-10));
+
+        if (splitMarker1 != null) splitMarker1.setPosition(splitPos1);
+        if (splitMarker2 != null) splitMarker2.setPosition(splitPos2);
+
+        if (SystemClock.elapsedRealtime() > shellSplitEndTimeMs) {
+            if (isSaltBombActive) {
+                if (splitMarker1 != null) splitMarker1.remove();
+                if (splitMarker2 != null) splitMarker2.remove();
+                if (snailMarker != null) snailMarker.remove();
+                snailMarker = null;
+            } else {
+                snailPosition = new LatLng(
+                        (splitPos1.latitude + splitPos2.latitude) / 2,
+                        (splitPos1.longitude + splitPos2.longitude) / 2);
+                if (snailMarker == null) {
+                    BitmapDescriptor snailIcon = getSnailBitmapDescriptor(loadedSnailSpriteIdentifier);
+                    snailMarker = mMap.addMarker(new MarkerOptions().position(snailPosition).icon(snailIcon).title("Snail"));
+                } else {
+                    snailMarker.setPosition(snailPosition);
+                    snailMarker.setVisible(true);
+                }
+                if (splitMarker1 != null) splitMarker1.remove();
+                if (splitMarker2 != null) splitMarker2.remove();
+            }
+            shellSplitActive = false;
+        }
+
+        if (!isGameOver && snailHandler != null) {
+            snailHandler.postDelayed(continuation, updateIntervalMs);
+        }
     }
 
     // Inside MainActivity.java
