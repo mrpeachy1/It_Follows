@@ -65,7 +65,6 @@ import android.widget.ImageButton;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import android.media.MediaPlayer;
-import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 import java.util.Locale;
 
@@ -79,6 +78,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private float snailSpeedMultiplier = 1.0f;
     private boolean snailSpeedBoostActive = false;
     private long snailSpeedBoostEndTimeMs = 0;
+    private boolean snailInactivityBoostActive = false;
+    private long snailInactivityBoostEndTimeMs = 0;
+    private static final float INACTIVITY_SPEED_THRESHOLD_MPS = 0.5f;
+    private static final long INACTIVITY_DURATION_MS = 30_000; // 30 seconds
+    private static final float INACTIVITY_SPEED_MULTIPLIER = 1.5f;
+    private static final long INACTIVITY_BOOST_DURATION_MS = 15_000; // 15 seconds
+    private long lastMovementTimeMs = 0;
+    private long lastSpeedCheckTimeMs = 0;
+    private LatLng lastSpeedCheckPosition = null;
     private Handler beaconSpawnHandler = new Handler();
     private Runnable beaconSpawnRunnable;
 
@@ -223,6 +231,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void increaseSnailSpeedForNight() {
         snailSpeedMultiplier = 1.5f; // Or increase snail speed value directly
+    }
+
+    private boolean isInSleepHours() {
+        Calendar calendar = Calendar.getInstance();
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        return hour >= 20 || hour < 6;
     }
 
     private void spawnSnailBeacon() {
@@ -1861,6 +1875,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 for (Location location : locationResult.getLocations()) {
                     currentPlayerLocation = new LatLng(location.getLatitude(), location.getLongitude());
                     playerPosition = currentPlayerLocation; // ✅ Add this line
+                    long now = System.currentTimeMillis();
+                    if (lastSpeedCheckPosition == null) {
+                        lastSpeedCheckPosition = currentPlayerLocation;
+                        lastSpeedCheckTimeMs = now;
+                        lastMovementTimeMs = now;
+                    }
 
                     if (playerMarker == null && mMap != null) {
                         playerMarker = mMap.addMarker(new MarkerOptions()
@@ -1996,9 +2016,39 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         snailHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (snailSpeedBoostActive && System.currentTimeMillis() > snailSpeedBoostEndTimeMs) {
+                long now = System.currentTimeMillis();
+
+                if (snailSpeedBoostActive && now > snailSpeedBoostEndTimeMs) {
                     snailSpeedMultiplier /= 2f;
                     snailSpeedBoostActive = false;
+                }
+
+                if (snailInactivityBoostActive && now > snailInactivityBoostEndTimeMs) {
+                    snailSpeedMultiplier /= INACTIVITY_SPEED_MULTIPLIER;
+                    snailInactivityBoostActive = false;
+                }
+
+                if (lastSpeedCheckPosition != null && currentPlayerLocation != null) {
+                    float[] distRes = new float[1];
+                    Location.distanceBetween(lastSpeedCheckPosition.latitude, lastSpeedCheckPosition.longitude,
+                            currentPlayerLocation.latitude, currentPlayerLocation.longitude, distRes);
+                    float elapsedSec = (now - lastSpeedCheckTimeMs) / 1000f;
+                    float playerSpeed = elapsedSec > 0 ? distRes[0] / elapsedSec : 0f;
+                    if (playerSpeed >= INACTIVITY_SPEED_THRESHOLD_MPS) {
+                        lastMovementTimeMs = now;
+                    }
+                } else if (lastSpeedCheckPosition == null && currentPlayerLocation != null) {
+                    lastMovementTimeMs = now;
+                }
+                lastSpeedCheckTimeMs = now;
+                lastSpeedCheckPosition = currentPlayerLocation;
+
+                if (!snailInactivityBoostActive && !snailSpeedBoostActive &&
+                        now - lastMovementTimeMs >= INACTIVITY_DURATION_MS && !isInSleepHours()) {
+                    snailSpeedMultiplier *= INACTIVITY_SPEED_MULTIPLIER;
+                    snailInactivityBoostActive = true;
+                    snailInactivityBoostEndTimeMs = now + INACTIVITY_BOOST_DURATION_MS;
+                    Toast.makeText(MainActivity.this, "Why did you stop?", Toast.LENGTH_SHORT).show();
                 }
                 float snailMetersPerSecond = getSnailMetersPerSecond(currentSnailSpeedSetting) * snailSpeedMultiplier;
                 float snailMetersPerMillisecond = snailMetersPerSecond / 1000f;
