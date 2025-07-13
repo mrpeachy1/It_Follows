@@ -155,19 +155,19 @@ public class SettingsActivity extends AppCompatActivity {
                 R.drawable.spoon    // Game sprite resource ID
         ));
         spriteList.add(new SnailSprite(
-                "Spoon Zombie",      // User-friendly name
+                "Zombie Snail",      // User-friendly name
                 "snail_zombie",      // Unique identifier
                 R.drawable.snail_zombie,   // Thumbnail resource ID (e.g., spoon.png)
                 R.drawable.snail_zombie    // Game sprite resource ID
         ));
         spriteList.add(new SnailSprite(
-                "Spoon Scissors",      // User-friendly name
+                "Scissors Snail",      // User-friendly name
                 "snail_scissors",      // Unique identifier
                 R.drawable.snail_scissors,   // Thumbnail resource ID (e.g., spoon.png)
                 R.drawable.snail_scissors    // Game sprite resource ID
         ));
         spriteList.add(new SnailSprite(
-                "Snail Gun",      // User-friendly name
+                "Gun Snail",      // User-friendly name
                 "snail_gun",      // Unique identifier
                 R.drawable.snail_gun,   // Thumbnail resource ID (e.g., spoon.png)
                 R.drawable.snail_gun    // Game sprite resource ID

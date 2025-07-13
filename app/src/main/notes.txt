@@ -92,3 +92,5 @@ snailcoinglitch patch
 persistentstate6
 
 SnailBeacon patch
+
+persistentstate7

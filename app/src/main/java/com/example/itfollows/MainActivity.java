@@ -106,7 +106,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean isGameServiceActive = false;
     private long gameTickIntervalMillis = 2000;
     private LocationCallback locationCallback;
-
+    // Track whether the activity is currently in the background
+    private boolean isInBackground = false;
+    // True while a minigame activity is being played
+    private boolean isPlayingMinigame = false;
     private LatLng currentPlayerLocation;
     // private Marker playerMarker; // Player marker is usually the blue dot from setMyLocationEnabled
     private Marker snailMarker;
@@ -402,29 +405,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        SharedPreferences statePrefs = getSharedPreferences(PREFS_GAME_STATE, MODE_PRIVATE);
-        boolean hasSavedGame = statePrefs.contains(KEY_SNAIL_LAT_BEFORE_PAUSE)
-                && statePrefs.contains(KEY_PLAYER_LAT_BEFORE_PAUSE);
+        SharedPreferences statePrefs = getSharedPreferences("SnailGameState", MODE_PRIVATE);
+        boolean hasSavedSnail = statePrefs.contains("snail_lat") && statePrefs.contains("player_lat");
         boolean isNewGame = getIntent().getBooleanExtra("isNewGame", false); // safer default
 
         Log.d("MainActivity", "isNewGame = " + isNewGame);
-        Log.d("MainActivity", "hasSavedSnail = " + hasSavedGame);
-        if (!hasSavedGame) {
+        Log.d("MainActivity", "hasSavedSnail = " + hasSavedSnail);
+        if (!hasSavedSnail) {
             Log.d("MainActivity", "No saved state found. Proceeding with isNewGame = " + isNewGame);
         } else {
             Log.d("MainActivity", "Saved snail state detected. Forcing isNewGame = false");
             isNewGame = false; // 👈 OVERRIDE to prevent false reset
         }
-        if (isNewGame && !hasSavedGame) {
-            // Fresh game setup. Snail will spawn once map and player location are ready.
+        if (isNewGame || !hasSavedSnail) {
+            // Fresh game setup
             statePrefs.edit().clear().apply();
             getSharedPreferences("PowerUpInventory", MODE_PRIVATE).edit().clear().apply();
             resetLocalGameState();
-            Log.d("MainActivity", "New game: reset state. Snail will spawn when ready.");
-        } else if (hasSavedGame) {
-            // Resume previous state but delay chase until map/location available
+            spawnSnailAtRandomLocation();
+            Log.d("MainActivity", "New game: reset state and spawned snail.");
+        } else {
+            // Resume previous state
             loadGameState();
-            Log.d("MainActivity", "Loaded saved game state.");
+            startSnailChase();
+            Log.d("MainActivity", "Resumed saved game state.");
         }
         getSharedPreferences("PowerUpCooldowns", MODE_PRIVATE).edit().clear().apply(); // ✅ Reset cooldowns
 
@@ -438,6 +442,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (!currencyPrefs.contains("snailCoins")) {
             currencyEditor.putInt("snailCoins", 1_000_000);
             currencyEditor.apply();
+        }
+
+        // 🔥 Clear any previous saved game state to force a fresh game
+        if (isNewGame) {
+            Log.d("MainActivity", "Truly new game, clearing state...");
+            statePrefs.edit().clear().apply(); // Clear saved state
+            getSharedPreferences("PowerUpInventory", MODE_PRIVATE).edit().clear().apply();
+            resetLocalGameState(); // if you use this method
+            spawnSnailAtRandomLocation(); // your spawn logic
+        } else {
+            loadGameState(); // resume snail + player
+            startSnailChase(); // resume movement logic
         }
 
         snailCoinBalance = getSharedPreferences("SnailGameState", MODE_PRIVATE)
@@ -520,12 +536,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             GameService.clearSavedState(this);
 
             // Clear any saved game progress so a new game starts fresh
-            // Cancel pending updates from the local chase loop
-            snailHandler.removeCallbacksAndMessages(null);
-            isGameServiceActive = false;
-
-            // Clear saved game progress so a new game starts fresh
-            clearGameStatePrefs();
             clearGameStatePrefs();
 
             Intent intent = new Intent(this, MainMenuActivity.class);
@@ -576,18 +586,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         playHoldMinigameBtn.setOnClickListener(v -> {
         Intent intent = new Intent(MainActivity.this, HoldToSurviveMinigameActivity.class);
+        isPlayingMinigame = true;
         startActivityForResult(intent, 444); // use unique requestCode
         });
 
         playSlimeGameBtn.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, SlimeTapMinigameActivity.class);
+            isPlayingMinigame = true;
             startActivityForResult(intent, 222);
         });
 
         playCoinFlipBtn.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, CoinFlipMinigameActivity.class);
+            isPlayingMinigame = true;
             startActivityForResult(intent, 333);
         });
+
+        // 🧼 Fresh game start: no resume logic
+        resetLocalGameState();
+        spawnSnailAtRandomLocation();
+        startSnailChase();
 
         useShieldBtn.setOnClickListener(v -> {
             int count = powerUpPrefs.getInt("shellShield", 0);
@@ -917,17 +935,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // If it's time to trigger and not already played
         if (currentTime >= triggerTime && lastPlayedDate < todayStart && todaysGame != null) {
             Intent intent;
+            Class<?> activityClass;
             int requestCode;
 
             if (todaysGame.equals("slime")) {
+                activityClass = SlimeTapMinigameActivity.class;
                 intent = new Intent(this, SlimeTapMinigameActivity.class);
                 requestCode = 222;
             } else {
+                activityClass = CoinFlipMinigameActivity.class;
                 intent = new Intent(this, CoinFlipMinigameActivity.class);
                 requestCode = 333;
             }
-
-            startActivityForResult(intent, requestCode);
+            if (isInBackground) {
+                showMinigameReadyNotification(activityClass);
+            } else {
+                isPlayingMinigame = true;
+                startActivityForResult(intent, requestCode);
+            }
             prefs.edit().putLong(KEY_LAST_PLAYED_DATE, currentTime).apply();
         }
 
@@ -962,9 +987,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Only trigger if we're past the trigger time and haven’t played yet today
         if (currentTime >= triggerTime && lastPlayedDate < todayStartMillis) {
-            // Launch the minigame
             Intent intent = new Intent(this, SlimeTapMinigameActivity.class);
-            startActivityForResult(intent, 222);
+            if (isInBackground) {
+                showMinigameReadyNotification(SlimeTapMinigameActivity.class);
+            } else {
+                isPlayingMinigame = true;
+                startActivityForResult(intent, 222);
+            }
         }
     }
 
@@ -1888,6 +1917,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 prefs.edit().putLong(KEY_LAST_HOLD_PLAYED_DATE, now).apply();
 
                 Intent intent = new Intent(MainActivity.this, HoldToSurviveMinigameActivity.class);
+                isPlayingMinigame = true;
                 startActivityForResult(intent, REQUEST_CODE_HOLD);
             } else {
                 Log.d("HoldMinigame", "Random trigger skipped for today.");
@@ -2295,6 +2325,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onStart() { // Or onResume
         super.onStart();
+        // Activity is visible again
+        isInBackground = false;
         IntentFilter filter = new IntentFilter();
         filter.addAction(GameService.ACTION_GAME_STATE_UPDATE);
         filter.addAction(GameService.ACTION_GAME_OVER);
@@ -2315,6 +2347,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onStop() { // Or onPause
         super.onStop();
+        // Mark that the activity is no longer in the foreground
+        isInBackground = true;
         LocalBroadcastManager.getInstance(this).unregisterReceiver(gameStateReceiver);
     }
 
@@ -2330,6 +2364,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         checkAndActivateNightMode();
         if (snailPosition != null) {
             updateSnailMarker(); // restore snail
+        } else if (isNewGame) {
+            spawnSnailAtRandomLocation();
         }
         // mMap.getUiSettings().setCompassEnabled(true); // Optional: show compass
         if (snailPosition != null && snailMarker == null) {
@@ -2443,6 +2479,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onResume() {
         super.onResume();
+        // Activity returned to foreground
+        isInBackground = false;
+        // Minigame activities have ended when we return here
+        isPlayingMinigame = false;
         SharedPreferences.Editor editor = getSharedPreferences("GameSettings", MODE_PRIVATE).edit();
         editor.putBoolean("vibration", true);
         editor.apply();
@@ -2485,12 +2525,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onUserLeaveHint() {
         super.onUserLeaveHint();
-        showSnailMinigameNotification();
+        if (!isPlayingMinigame) {
+            showSnailMinigameNotification();
+        }
     }
 
     private void showSnailMinigameNotification() {
-        String channelId = "snail_channel_id";
-        String channelName = "Snail Alerts";
+        String channelId = "snail_warning_channel";
+        String channelName = "Snail Warnings";
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -2498,8 +2540,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             NotificationChannel channel = new NotificationChannel(
                     channelId,
                     channelName,
-                    NotificationManager.IMPORTANCE_HIGH
+                    NotificationManager.IMPORTANCE_DEFAULT
             );
+            channel.setSound(null, null);
             notificationManager.createNotificationChannel(channel);
         }
 
@@ -2515,12 +2558,47 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .setSmallIcon(R.drawable.snail) // use your snail icon
                 .setContentTitle("The Snail Wants to Play")
                 .setContentText("Return to the game before it gets closer...")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pendingIntent)
+                .setSilent(true)
+                .build();
+
+        notificationManager.notify(1001, notification);
+    }
+    // Show a notification that launches a specific minigame when tapped
+    private void showMinigameReadyNotification(Class<?> activityClass) {
+        String channelId = "snail_channel_id";
+        String channelName = "Snail Alerts";
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    channelId,
+                    channelName,
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        Intent intent = new Intent(this, activityClass);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_IMMUTABLE
+        );
+
+        Notification notification = new NotificationCompat.Builder(this, channelId)
+                .setSmallIcon(R.drawable.snail)
+                .setContentTitle("The Snail Wants to Play")
+                .setContentText("Tap to start the minigame!")
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
                 .build();
 
-        notificationManager.notify(1001, notification);
+        notificationManager.notify(1002, notification);
     }
     private void pushSnailBack() {
         double meters = 25 + Math.random() * 50; // Push back 20–40 meters
@@ -2772,7 +2850,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         SharedPreferences prefs = getSharedPreferences(MINIGAME_PREFS, MODE_PRIVATE);
         prefs.edit().putLong(KEY_LAST_PLAYED_DATE, System.currentTimeMillis()).apply();
-
+        // We have returned from another activity; any minigame is finished
+        isPlayingMinigame = false;
         super.onActivityResult(requestCode, resultCode, data);
         Log.d("MainActivity", "onActivityResult: requestCode=" + requestCode + ", resultCode=" + resultCode);
         if (requestCode == REQUEST_CODE_HOLD && data != null) {
