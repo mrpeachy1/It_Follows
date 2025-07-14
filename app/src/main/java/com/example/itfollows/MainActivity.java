@@ -143,6 +143,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String KEY_SNAIL_DISTANCE_BEFORE_PAUSE = "snailDistanceBeforePause";
     private static final String KEY_GAME_START_TIME_ELAPSED = "gameStartTimeElapsedMillis";
     private static final String KEY_SNAIL_HAS_SPAWNED_ON_PAUSE = "snailHasSpawnedOnPause";
+    private static final String KEY_HAS_SAVED_GAME = "hasSavedGame";
     private RelativeLayout inventoryPanel;
     private Button inventoryButton, useSaltBombBtn;
     private TextView saltBombLabel;
@@ -394,30 +395,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        SharedPreferences statePrefs = getSharedPreferences("SnailGameState", MODE_PRIVATE);
-        boolean hasSavedSnail = statePrefs.contains("snail_lat") && statePrefs.contains("player_lat");
+        SharedPreferences statePrefs = getSharedPreferences(PREFS_GAME_STATE, MODE_PRIVATE);
+        boolean hasSavedGame = statePrefs.getBoolean(KEY_HAS_SAVED_GAME, false)
+                && statePrefs.contains(KEY_SNAIL_LAT_BEFORE_PAUSE)
+                && statePrefs.contains(KEY_PLAYER_LAT_BEFORE_PAUSE);
         boolean isNewGame = getIntent().getBooleanExtra("isNewGame", false); // safer default
 
         Log.d("MainActivity", "isNewGame = " + isNewGame);
-        Log.d("MainActivity", "hasSavedSnail = " + hasSavedSnail);
-        if (!hasSavedSnail) {
+        Log.d("MainActivity", "hasSavedSnail = " + hasSavedGame);
+        if (!hasSavedGame) {
             Log.d("MainActivity", "No saved state found. Proceeding with isNewGame = " + isNewGame);
         } else {
             Log.d("MainActivity", "Saved snail state detected. Forcing isNewGame = false");
             isNewGame = false; // 👈 OVERRIDE to prevent false reset
         }
-        if (isNewGame || !hasSavedSnail) {
-            // Fresh game setup
+        if (isNewGame && !hasSavedGame) {
+            // Fresh game setup. Snail will spawn once map and player location are ready.
             statePrefs.edit().clear().apply();
             getSharedPreferences("PowerUpInventory", MODE_PRIVATE).edit().clear().apply();
             resetLocalGameState();
-            spawnSnailAtRandomLocation();
-            Log.d("MainActivity", "New game: reset state and spawned snail.");
-        } else {
-            // Resume previous state
+            Log.d("MainActivity", "New game: reset state. Snail will spawn when ready.");
+        } else if (hasSavedGame) {
+            // Resume previous state but delay chase until map/location available
             loadGameState();
-            startSnailChase();
-            Log.d("MainActivity", "Resumed saved game state.");
+            Log.d("MainActivity", "Loaded saved game state.");
         }
         getSharedPreferences("PowerUpCooldowns", MODE_PRIVATE).edit().clear().apply(); // ✅ Reset cooldowns
 
@@ -431,18 +432,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (!currencyPrefs.contains("snailCoins")) {
             currencyEditor.putInt("snailCoins", 1_000_000);
             currencyEditor.apply();
-        }
-
-        // 🔥 Clear any previous saved game state to force a fresh game
-        if (isNewGame) {
-            Log.d("MainActivity", "Truly new game, clearing state...");
-            statePrefs.edit().clear().apply(); // Clear saved state
-            getSharedPreferences("PowerUpInventory", MODE_PRIVATE).edit().clear().apply();
-            resetLocalGameState(); // if you use this method
-            spawnSnailAtRandomLocation(); // your spawn logic
-        } else {
-            loadGameState(); // resume snail + player
-            startSnailChase(); // resume movement logic
         }
 
         snailCoinBalance = getSharedPreferences("SnailGameState", MODE_PRIVATE)
@@ -598,10 +587,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             startActivityForResult(intent, 333);
         });
 
-        // 🧼 Fresh game start: no resume logic
-        resetLocalGameState();
-        spawnSnailAtRandomLocation();
-        startSnailChase();
 
         useShieldBtn.setOnClickListener(v -> {
             int count = powerUpPrefs.getInt("shellShield", 0);
@@ -1423,9 +1408,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             editor.putFloat(KEY_SNAIL_DISTANCE_BEFORE_PAUSE, totalSnailDistanceMeters);
             editor.putLong(KEY_GAME_START_TIME_ELAPSED, gameStartTimeElapsedMillis);
             editor.putBoolean(KEY_SNAIL_HAS_SPAWNED_ON_PAUSE, true);
+            editor.putBoolean(KEY_HAS_SAVED_GAME, true);
             Log.d("GameState", "Saving game state: Snail@" + snailPosition + ", Player@" + currentPlayerLocation + ", TimePaused: " + SystemClock.elapsedRealtime());
         } else {
             editor.putBoolean(KEY_SNAIL_HAS_SPAWNED_ON_PAUSE, false); // No active game to save
+            editor.putBoolean(KEY_HAS_SAVED_GAME, false);
             Log.d("GameState", "No active game, saving minimal state (spawned=false).");
         }
         editor.apply();
@@ -1473,6 +1460,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             updatePowerUpUI(); // if you have this method
 
             Log.d("GameState", "Loaded game + power-ups: Salt=" + saltBombCount + ", Shield=" + shellShieldCount);
+
+            // Determine how long the game was paused and move the snail
+            long elapsed = SystemClock.elapsedRealtime() - timePausedElapsedMillis;
+            if (elapsed > 0) {
+                recalculateSnailPositionAfterPause(elapsed);
+                clearGameStatePrefs();
+                startSnailChase();
+            }
         } else {
             Log.d("GameState", "No saved game state to load.");
         }
@@ -1481,7 +1476,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void clearGameStatePrefs() {
         SharedPreferences prefs = getSharedPreferences(PREFS_GAME_STATE, MODE_PRIVATE);
-        prefs.edit().clear().apply();
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.clear();
+        editor.putBoolean(KEY_HAS_SAVED_GAME, false);
+        editor.apply();
         // Also clear the in-memory variables related to pause state
         snailPositionBeforePause = null;
         playerPositionBeforePause = null;
@@ -2310,8 +2308,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         checkAndActivateNightMode();
         if (snailPosition != null) {
             updateSnailMarker(); // restore snail
-        } else if (isNewGame) {
-            spawnSnailAtRandomLocation();
         }
         // mMap.getUiSettings().setCompassEnabled(true); // Optional: show compass
         if (snailPosition != null && snailMarker == null) {
@@ -2401,15 +2397,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         loadSelectedSnailSprite();
 
-        if (snailMarker != null && hasSpawnedSnail && snailPosition != null) {
-            // ✅ Save the snail's position
-            SharedPreferences.Editor gameStateEditor = getSharedPreferences("SnailGameState", MODE_PRIVATE).edit();
-            gameStateEditor.putString("snail_lat", String.valueOf(snailPosition.latitude));
-            gameStateEditor.putString("snail_lng", String.valueOf(snailPosition.longitude));
-            gameStateEditor.apply();
-            Log.d("onPause", "Saved snail position: " + snailPosition.latitude + ", " + snailPosition.longitude);
+        // Persist the full game state including player/snail positions and the
+        // current elapsed realtime value so we can properly resume later.
+        saveGameState();
 
-            updateSnailIcon(); // Optional: refresh the sprite
+        if (snailMarker != null && hasSpawnedSnail) {
+            updateSnailIcon(); // Optional: refresh the sprite icon while paused
         }
 
         LocalBroadcastManager.getInstance(this).registerReceiver(gameOverReceiver,
