@@ -18,7 +18,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import com.google.android.gms.maps.model.LatLngBounds;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -64,7 +63,6 @@ import java.util.Random;
 import android.widget.ImageButton;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.model.MapStyleOptions;
-import android.media.MediaPlayer;
 import java.util.concurrent.TimeUnit;
 import java.util.Locale;
 
@@ -462,18 +460,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             currencyEditor.apply();
         }
 
-        // 🔥 Clear any previous saved game state to force a fresh game
-        if (isNewGame) {
-            Log.d("MainActivity", "Truly new game, clearing state...");
-            statePrefs.edit().clear().apply(); // Clear saved state
-            getSharedPreferences("PowerUpInventory", MODE_PRIVATE).edit().clear().apply();
-            resetLocalGameState(); // if you use this method
-            spawnSnailAtRandomLocation(); // your spawn logic
-        } else {
-            loadGameState(); // resume snail + player
-            startSnailChase(); // resume movement logic
-        }
-
         snailCoinBalance = getSharedPreferences("SnailGameState", MODE_PRIVATE)
                 .getInt("snailCoins", 1_000_000);
 
@@ -650,10 +636,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             startActivityForResult(intent, 333);
         });
 
-        // 🧼 Fresh game start: no resume logic
-        resetLocalGameState();
-        spawnSnailAtRandomLocation();
-        startSnailChase();
 
         useShieldBtn.setOnClickListener(v -> {
             int count = powerUpPrefs.getInt("shellShield", 0);
@@ -1460,6 +1442,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         snailSpeedBoostEndTimeMs = System.currentTimeMillis() + TWENTY_FOUR_HOURS;
     }
     private void updatePowerUpUI() {
+        SharedPreferences powerUpPrefs = getSharedPreferences("PowerUpInventory", MODE_PRIVATE);
         TextView saltBombLabel = findViewById(R.id.saltBombLabel);
         TextView decoyShellLabel = findViewById(R.id.decoyLabel);  // FIXED: was mistakenly set to 'shieldLabel'
         TextView shellShieldLabel = findViewById(R.id.shieldLabel);
@@ -2508,8 +2491,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         checkAndActivateNightMode();
         if (snailPosition != null) {
             updateSnailMarker(); // restore snail
-        } else if (isNewGame) {
-            spawnSnailAtRandomLocation();
         }
         // mMap.getUiSettings().setCompassEnabled(true); // Optional: show compass
         if (snailPosition != null && snailMarker == null) {

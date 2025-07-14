@@ -18,6 +18,10 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
+import android.text.TextUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
@@ -30,6 +34,9 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class GameService extends Service {
     private static final int NOTIFICATION_ID = 123;
@@ -52,6 +59,8 @@ public class GameService extends Service {
     private static final String KEY_PLAYER_LAT = "playerLat";
     private static final String KEY_PLAYER_LNG = "playerLng";
     private static final String KEY_IS_GAME_RUNNING = "isGameRunning";
+    private static final String KEY_SNAIL_TRAIL = "snailTrail";
+    private static final int MAX_TRAIL_POINTS = 10000;
     private long gameTickIntervalMs = 2000;
     private FusedLocationProviderClient fusedLocationClient;
     private LocationCallback locationCallback;
@@ -82,6 +91,7 @@ public class GameService extends Service {
                         intent.getDoubleExtra("snail_lat", 0),
                         intent.getDoubleExtra("snail_lng", 0)
                 );
+                saveSnailTrailPoint(snailPosition);
             }
 
             // Retrieve game settings if passed
@@ -112,6 +122,7 @@ public class GameService extends Service {
                         intent.getDoubleExtra("snail_lng", 0)
 
                 );
+                saveSnailTrailPoint(snailPosition);
             }
         startForeground(NOTIFICATION_ID, notification);
 
@@ -204,6 +215,7 @@ public class GameService extends Service {
         double newSnailLat = snailPosition.latitude + (speedDegrees * Math.sin(angle));
         double newSnailLng = snailPosition.longitude + (speedDegrees * Math.cos(angle));
         snailPosition = new LatLng(newSnailLat, newSnailLng);
+        saveSnailTrailPoint(snailPosition);
         Log.d(TAG, "Snail moved to: " + snailPosition);
     }
 
@@ -436,5 +448,27 @@ public class GameService extends Service {
         Log.d(TAG, "Clearing saved GameService state.");
         SharedPreferences prefs = context.getSharedPreferences(PREFS_GAME_SERVICE_STATE, MODE_PRIVATE);
         prefs.edit().clear().apply();
+    }
+
+    /**
+     * Append the given point to the persistent snail trail stored in SharedPreferences.
+     * Each point is stored as a JSON object within a JSON array under the key
+     * "trailPoints" in the "SnailTrail" preference file.
+     */
+    private void saveSnailTrailPoint(LatLng newPoint) {
+        SharedPreferences trailPrefs = getSharedPreferences("SnailTrail", MODE_PRIVATE);
+        String trailJson = trailPrefs.getString("trailPoints", "[]");
+
+        try {
+            JSONArray trailArray = new JSONArray(trailJson);
+            JSONObject point = new JSONObject();
+            point.put("lat", newPoint.latitude);
+            point.put("lng", newPoint.longitude);
+            trailArray.put(point);
+
+            trailPrefs.edit().putString("trailPoints", trailArray.toString()).apply();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 }
