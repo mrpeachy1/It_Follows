@@ -462,18 +462,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             currencyEditor.apply();
         }
 
-        // 🔥 Clear any previous saved game state to force a fresh game
-        if (isNewGame) {
-            Log.d("MainActivity", "Truly new game, clearing state...");
-            statePrefs.edit().clear().apply(); // Clear saved state
-            getSharedPreferences("PowerUpInventory", MODE_PRIVATE).edit().clear().apply();
-            resetLocalGameState(); // if you use this method
-            spawnSnailAtRandomLocation(); // your spawn logic
-        } else {
-            loadGameState(); // resume snail + player
-            startSnailChase(); // resume movement logic
-        }
-
         snailCoinBalance = getSharedPreferences("SnailGameState", MODE_PRIVATE)
                 .getInt("snailCoins", 1_000_000);
 
@@ -650,10 +638,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             startActivityForResult(intent, 333);
         });
 
-        // 🧼 Fresh game start: no resume logic
-        resetLocalGameState();
-        spawnSnailAtRandomLocation();
-        startSnailChase();
 
         useShieldBtn.setOnClickListener(v -> {
             int count = powerUpPrefs.getInt("shellShield", 0);
@@ -2508,8 +2492,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         checkAndActivateNightMode();
         if (snailPosition != null) {
             updateSnailMarker(); // restore snail
-        } else if (isNewGame) {
-            spawnSnailAtRandomLocation();
         }
         // mMap.getUiSettings().setCompassEnabled(true); // Optional: show compass
         if (snailPosition != null && snailMarker == null) {
