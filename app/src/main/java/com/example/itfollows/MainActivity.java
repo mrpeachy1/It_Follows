@@ -2643,6 +2643,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (snailMarker != null && hasSpawnedSnail) {
             updateSnailIcon();
         }
+        restoreSnailTrail();
         TextView coinBalanceText = findViewById(R.id.coinBalanceText);
         int balance = getSharedPreferences("SnailCoins", MODE_PRIVATE).getInt("coin_balance", 0);
         coinBalanceText.setText("🪙 " + balance);
