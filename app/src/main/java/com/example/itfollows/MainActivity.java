@@ -57,6 +57,9 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import android.content.IntentFilter;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -128,6 +131,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private float gameOverDistanceMeters; // DECLARE THE VARIABLE HERE
     private Polyline snailTrail;
     private List<LatLng> snailTrailPoints;
+    private Polyline trailPolyline;
     private static final int MAX_TRAIL_POINTS = 100000;
     private static final String PREFS_NAME = "GameSettings";
     public static final String KEY_SELECTED_SNAIL_SPRITE = "selectedSnailSprite";
@@ -1211,6 +1215,31 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void drawSnailTrail() {
+    }
+
+    private void restoreSnailTrail() {
+        SharedPreferences trailPrefs = getSharedPreferences("SnailTrail", MODE_PRIVATE);
+        String trailJson = trailPrefs.getString("trailPoints", "[]");
+
+        try {
+            JSONArray trailArray = new JSONArray(trailJson);
+            List<LatLng> trailPoints = new ArrayList<>();
+
+            for (int i = 0; i < trailArray.length(); i++) {
+                JSONObject obj = trailArray.getJSONObject(i);
+                double lat = obj.getDouble("lat");
+                double lng = obj.getDouble("lng");
+                trailPoints.add(new LatLng(lat, lng));
+            }
+
+            if (trailPolyline != null) trailPolyline.remove();
+            trailPolyline = mMap.addPolyline(new PolylineOptions()
+                    .addAll(trailPoints)
+                    .color(Color.GREEN)
+                    .width(5f));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
 
