@@ -1217,6 +1217,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void drawSnailTrail() {
     }
     private void restoreSnailTrail() {
+        if (mMap == null) {
+            Log.w(TAG_MAIN_ACTIVITY, "Map not ready; skipping trail restore");
+            return;
+        }
         SharedPreferences trailPrefs = getSharedPreferences("SnailTrail", MODE_PRIVATE);
         String trailJson = trailPrefs.getString("trailPoints", "[]");
 
@@ -2509,6 +2513,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
+        restoreSnailTrail();
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.setOnCameraMoveStartedListener(reason -> {
             if (reason == GoogleMap.OnCameraMoveStartedListener.REASON_GESTURE) {
