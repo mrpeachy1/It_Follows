@@ -18,6 +18,10 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
+import android.text.TextUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
@@ -52,6 +56,8 @@ public class GameService extends Service {
     private static final String KEY_PLAYER_LAT = "playerLat";
     private static final String KEY_PLAYER_LNG = "playerLng";
     private static final String KEY_IS_GAME_RUNNING = "isGameRunning";
+    private static final String KEY_SNAIL_TRAIL = "snailTrail";
+    private static final int MAX_TRAIL_POINTS = 1000;
     private long gameTickIntervalMs = 2000;
     private FusedLocationProviderClient fusedLocationClient;
     private LocationCallback locationCallback;
@@ -204,6 +210,7 @@ public class GameService extends Service {
         double newSnailLat = snailPosition.latitude + (speedDegrees * Math.sin(angle));
         double newSnailLng = snailPosition.longitude + (speedDegrees * Math.cos(angle));
         snailPosition = new LatLng(newSnailLat, newSnailLng);
+        saveSnailTrailPoint(snailPosition);
         Log.d(TAG, "Snail moved to: " + snailPosition);
     }
 
@@ -317,6 +324,20 @@ public class GameService extends Service {
         // Add other game data if needed (e.g., score, power-up status if service manages them)
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
         Log.d(TAG, "Game state broadcasted.");
+    }
+
+    private void saveSnailTrailPoint(LatLng point) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_GAME_SERVICE_STATE, MODE_PRIVATE);
+        String existing = prefs.getString(KEY_SNAIL_TRAIL, "");
+        List<String> items = new ArrayList<>();
+        if (existing != null && !existing.isEmpty()) {
+            items.addAll(Arrays.asList(existing.split(";")));
+        }
+        items.add(point.latitude + "," + point.longitude);
+        if (items.size() > MAX_TRAIL_POINTS) {
+            items = items.subList(items.size() - MAX_TRAIL_POINTS, items.size());
+        }
+        prefs.edit().putString(KEY_SNAIL_TRAIL, TextUtils.join(";", items)).apply();
     }
     private void stopGameAndService() {
         Log.d(TAG, "stopGameAndService called");
