@@ -392,7 +392,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Location.distanceBetween(lat1, lng1, lat2, lng2, results);
         return results[0]; // distance in meters
     }
+    private double calculateDistance(double lat1, double lng1, double lat2, double lng2) {
+        float[] results = new float[1];
+        Location.distanceBetween(lat1, lng1, lat2, lng2, results);
+        return results[0];
+    }
 
+    private String formatDistance(double meters) {
+        if (useImperial) {
+            double feet = meters * 3.28084;
+            return String.format(Locale.US, "%.1f ft", feet);
+        } else {
+            return String.format(Locale.US, "%.1f m", meters);
+        }
+    }
     private int getSnailCoinBalance() {
         SharedPreferences prefs = getSharedPreferences("SnailGameState", MODE_PRIVATE); // ✅ MATCHES updateSnailCoinBalance
         return prefs.getInt("snailCoins", 1_000_000); // default to 1 million only once
@@ -1100,11 +1113,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private boolean isGameServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        if (manager != null) {
-            for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-                if (GameService.class.getName().equals(service.service.getClassName())) {
-                    return service.foreground; // Check if it's specifically a foreground service
-                }
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (GameService.class.getName().equals(service.service.getClassName())) {
+                return true;
             }
         }
         return false;
@@ -1204,7 +1215,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             e.printStackTrace();
         }
     }
+    private void resumeDistanceDisplay() {
+        SharedPreferences prefs = getSharedPreferences("SnailGameState", MODE_PRIVATE);
+        double snailLat = prefs.getFloat("snail_lat", 0f);
+        double snailLng = prefs.getFloat("snail_lng", 0f);
+        double playerLat = prefs.getFloat("player_lat", 0f);
+        double playerLng = prefs.getFloat("player_lng", 0f);
 
+        LatLng player = new LatLng(playerLat, playerLng);
+        LatLng snail = new LatLng(snailLat, snailLng);
+
+        double distance = calculateDistance(playerLat, playerLng, snailLat, snailLng);
+        if (snailDistanceText != null) {
+            snailDistanceText.setText(formatDistance(distance));
+        }
+        updateSnailMarker(snail);
+    }
     private void startGameService(LatLng initialSnailPositionToPass) {
         if (isGameServiceRunning()) {
             Log.d(TAG_MAIN_ACTIVITY, "Attempted to start service, but it's already running.");
@@ -2413,7 +2439,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
     }
-
+    private void updateSnailMarker(LatLng position) {
+        snailPosition = position;
+        updateSnailMarker();
+    }
     private void triggerGameOver(long timeTakenMillis, float distanceTraveledMeters, String message) {
         if (isGameOver) return; // Prevent multiple triggers
 
@@ -2473,7 +2502,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
-        restoreSnailTrail();
+        restoreSnailTrail();  // Only safe here
+        resumeDistanceDisplay();  // Will add this method next
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.setOnCameraMoveStartedListener(reason -> {
             if (reason == GoogleMap.OnCameraMoveStartedListener.REASON_GESTURE) {
@@ -2603,12 +2633,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         SharedPreferences.Editor editor = getSharedPreferences("GameSettings", MODE_PRIVATE).edit();
         editor.putBoolean("vibration", true);
         editor.apply();
+        editor.apply();
+
+        SharedPreferences prefs = getSharedPreferences("SnailGameState", MODE_PRIVATE);
+        boolean hasSavedSnail = prefs.contains("snail_lat") && prefs.contains("player_lat");
+
+        if (hasSavedSnail && !isGameServiceRunning()) {
+            Log.w("MainActivity", "Saved state exists but GameService is not running. Restarting...");
+            Intent serviceIntent = new Intent(this, GameService.class);
+            ContextCompat.startForegroundService(this, serviceIntent);
+        }
         // Load and update the snail sprite if it exists
         loadSelectedSnailSprite();
         if (snailMarker != null && hasSpawnedSnail) {
             updateSnailIcon();
         }
-        restoreSnailTrail();
         TextView coinBalanceText = findViewById(R.id.coinBalanceText);
         int balance = getSharedPreferences("SnailCoins", MODE_PRIVATE).getInt("coin_balance", 0);
         coinBalanceText.setText("🪙 " + balance);
