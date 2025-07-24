@@ -1042,46 +1042,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
             prefs.edit().putLong(KEY_LAST_PLAYED_DATE, currentTime).apply();
         }
-
-        // Start of today (midnight)
-        Calendar todayMidnight = Calendar.getInstance();
-        todayMidnight.set(Calendar.HOUR_OF_DAY, 0);
-        todayMidnight.set(Calendar.MINUTE, 0);
-        todayMidnight.set(Calendar.SECOND, 0);
-        todayMidnight.set(Calendar.MILLISECOND, 0);
-        long todayStartMillis = todayMidnight.getTimeInMillis();
-
-        // If it's a new day, reset trigger time
-        if (lastPlayedDate < todayStartMillis) {
-            // Generate a new random time between 8 AM and 10 PM
-            int randomHour = 8 + (int) (Math.random() * 14); // 8 to 21
-            int randomMinute = (int) (Math.random() * 60);
-
-            Calendar triggerCal = Calendar.getInstance();
-            triggerCal.set(Calendar.HOUR_OF_DAY, randomHour);
-            triggerCal.set(Calendar.MINUTE, randomMinute);
-            triggerCal.set(Calendar.SECOND, 0);
-            triggerCal.set(Calendar.MILLISECOND, 0);
-            long newTriggerTime = triggerCal.getTimeInMillis();
-
-            prefs.edit()
-                    .putLong(KEY_TODAYS_TRIGGER_TIME, newTriggerTime)
-                    .putLong(KEY_LAST_PLAYED_DATE, 0) // Reset last played so it can trigger again today
-                    .apply();
-
-            triggerTime = newTriggerTime;
-        }
-
-        // Only trigger if we're past the trigger time and haven’t played yet today
-        if (currentTime >= triggerTime && lastPlayedDate < todayStartMillis) {
-            Intent intent = new Intent(this, SlimeTapMinigameActivity.class);
-            if (isInBackground) {
-                showMinigameReadyNotification(SlimeTapMinigameActivity.class);
-            } else {
-                isPlayingMinigame = true;
-                startActivityForResult(intent, 222);
-            }
-        }
     }
 
     private void zoomOutToShowSnailButKeepPlayerCentered() {
