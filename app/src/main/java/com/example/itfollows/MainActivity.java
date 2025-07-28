@@ -1965,7 +1965,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     }
                     lastRewardCheckLocation = currentPlayerLocation;
-                    if (mMap != null && !hasSpawnedSnail && mMap.getMyLocation() != null && currentPlayerLocation != null) {
+                    if (mMap != null && !hasSpawnedSnail && currentPlayerLocation != null) {
                         // If resuming from a killed state and game state was loaded, snail might already be "spawned" conceptually
                         // Check if snailPosition is already set from loaded state
                         if (hasSpawnedSnail || snailPosition != null) {
@@ -2020,11 +2020,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         locationRequest.setInterval(250); // Desired interval for active location updates
         locationRequest.setFastestInterval(250); // Fastest interval if available from other apps
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, getMainLooper());
         if (mMap != null) {
             mMap.setMyLocationEnabled(true);
             mMap.getUiSettings().setMyLocationButtonEnabled(true);
         }
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, getMainLooper());
     }
     // Add this method to your MainActivity.java
 
