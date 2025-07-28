@@ -418,6 +418,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG_MAIN_ACTIVITY, "onCreate called");
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
@@ -1260,6 +1261,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     };
 
     private void updateDistanceDisplay(float result) {
+        if (snailDistanceText == null) return;
+
+        if (useImperial) {
+            double feet = result * 3.28084;
+            snailDistanceText.setText(String.format(Locale.US, "Snail: %.1f ft\nSpeed: %s", feet, currentSnailSpeedSetting));
+        } else {
+            snailDistanceText.setText(String.format(Locale.US, "Snail: %.1f m\nSpeed: %s", result, currentSnailSpeedSetting));
+        }
     }
 
     private void activateShellShield() {
@@ -1996,7 +2005,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, getMainLooper());
     }
     // Add this method to your MainActivity.java
-
+    private void stopLocationUpdates() {
+        if (fusedLocationClient != null && locationCallback != null) {
+            fusedLocationClient.removeLocationUpdates(locationCallback);
+        }
+    }
     private void checkLocationPermission() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(
@@ -2412,6 +2425,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onStart() { // Or onResume
         super.onStart();
+        Log.d(TAG_MAIN_ACTIVITY, "onStart called");
         // Activity is visible again
         isInBackground = false;
         IntentFilter filter = new IntentFilter();
@@ -2434,6 +2448,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onStop() { // Or onPause
         super.onStop();
+        Log.d(TAG_MAIN_ACTIVITY, "onStop called");
         // Mark that the activity is no longer in the foreground
         isInBackground = true;
         LocalBroadcastManager.getInstance(this).unregisterReceiver(gameStateReceiver);
@@ -2533,7 +2548,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onPause() {
         super.onPause();
-
+        Log.d(TAG_MAIN_ACTIVITY, "onPause called");
         SharedPreferences.Editor editor = getSharedPreferences("GameSettings", MODE_PRIVATE).edit();
         editor.putBoolean("vibration", false);
         editor.apply();
@@ -2550,6 +2565,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         LocalBroadcastManager.getInstance(this).registerReceiver(gameOverReceiver,
                 new IntentFilter("GAME_OVER"));
+        stopLocationUpdates();
     }
 
 
@@ -2564,6 +2580,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onResume() {
         super.onResume();
+        Log.d(TAG_MAIN_ACTIVITY, "onResume called");
         // Activity returned to foreground
         isInBackground = false;
         // Minigame activities have ended when we return here
@@ -2582,6 +2599,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Register game over receiver
         LocalBroadcastManager.getInstance(this).registerReceiver(gameOverReceiver,
                 new IntentFilter("GAME_OVER"));
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            startLocationUpdates();
+        }
+
+        if (currentPlayerLocation != null && snailPosition != null) {
+            float[] results = new float[1];
+            Location.distanceBetween(
+                    currentPlayerLocation.latitude, currentPlayerLocation.longitude,
+                    snailPosition.latitude, snailPosition.longitude,
+                    results);
+            updateDistanceDisplay(results[0]);
+        }
     }
 
     private void loadSelectedSnailSprite() {
@@ -2593,6 +2623,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         @Override
         protected void onDestroy() {
+            Log.d(TAG_MAIN_ACTIVITY, "onDestroy called");
             if (saltBombCooldownTimer != null) {
                 saltBombCooldownTimer.cancel();
             }
@@ -2601,6 +2632,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             SharedPreferences.Editor editor = getSharedPreferences("GameSettings", MODE_PRIVATE).edit();
             editor.putBoolean("vibration", true);
             editor.apply();
+            stopLocationUpdates();
 
             super.onDestroy();
         }
