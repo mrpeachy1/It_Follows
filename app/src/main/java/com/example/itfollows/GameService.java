@@ -107,8 +107,11 @@ public class GameService extends Service {
             stopSelf(); // Or attempt to load from a more robust saved state.
             return START_NOT_STICKY;
         }
-            Notification notification = createNotification("Snail is hunting...");
-            startForeground(NOTIFICATION_ID, notification);
+        Notification notification = createNotification("Snail is hunting...");
+        Log.d(TAG, "Starting foreground service");
+        Log.d(TAG, "Ensuring service stays in foreground");
+        startForeground(NOTIFICATION_ID, notification);
+        Log.d(TAG, "Foreground service started");
             if (!isGameRunning) { // Start game logic only if not already running (e.g. from a previous start command)
                 isGameRunning = true;
                 startLocationUpdates();
@@ -124,6 +127,7 @@ public class GameService extends Service {
                 );
                 saveSnailTrailPoint(snailPosition);
             }
+        Log.d(TAG, "Ensuring service stays in foreground");
         startForeground(NOTIFICATION_ID, notification);
 
         startLocationUpdates();
@@ -194,6 +198,7 @@ public class GameService extends Service {
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
+            Log.d(TAG, "Location updates registered");
         } else {
             Log.e(TAG, "Location permission not granted for service. Stopping.");
             stopGameAndService(); // Or handle differently
