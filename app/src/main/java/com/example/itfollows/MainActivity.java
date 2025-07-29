@@ -1548,6 +1548,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             double playerLat = Double.longBitsToDouble(prefs.getLong(KEY_PLAYER_LAT_BEFORE_PAUSE, 0));
             double playerLng = Double.longBitsToDouble(prefs.getLong(KEY_PLAYER_LNG_BEFORE_PAUSE, 0));
             playerPositionBeforePause = new LatLng(playerLat, playerLng);
+            if (currentPlayerLocation == null) {
+                currentPlayerLocation = playerPositionBeforePause;
+                playerPosition = playerPositionBeforePause;
+            }
 
             timePausedElapsedMillis = prefs.getLong(KEY_TIME_PAUSED_ELAPSED, 0);
             totalSnailDistanceBeforePause = prefs.getFloat(KEY_SNAIL_DISTANCE_BEFORE_PAUSE, 0f);
@@ -1965,7 +1969,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     }
                     lastRewardCheckLocation = currentPlayerLocation;
-                    if (mMap != null && !hasSpawnedSnail && mMap.getMyLocation() != null && currentPlayerLocation != null) {
+                    if (mMap != null && !hasSpawnedSnail && currentPlayerLocation != null) {
                         // If resuming from a killed state and game state was loaded, snail might already be "spawned" conceptually
                         // Check if snailPosition is already set from loaded state
                         if (hasSpawnedSnail || snailPosition != null) {
@@ -2020,11 +2024,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         locationRequest.setInterval(250); // Desired interval for active location updates
         locationRequest.setFastestInterval(250); // Fastest interval if available from other apps
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, getMainLooper());
         if (mMap != null) {
             mMap.setMyLocationEnabled(true);
             mMap.getUiSettings().setMyLocationButtonEnabled(true);
         }
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, getMainLooper());
     }
     // Add this method to your MainActivity.java
 
@@ -2231,14 +2235,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     private void recalculateSnailPositionAfterPause(long elapsedMillisWhilePaused) {
-        if (snailPositionBeforePause == null || playerPositionBeforePause == null || !hasSpawnedSnail || currentPlayerLocation == null) {
+        if (snailPositionBeforePause == null || playerPositionBeforePause == null || !hasSpawnedSnail) {
             Log.d("RecalculateSnail", "Not enough data to recalculate snail position.");
             clearGameStatePrefs(); // Clear stale data
             return;
         }
 
+        LatLng effectivePlayerLocation = currentPlayerLocation != null ? currentPlayerLocation : playerPositionBeforePause;
+
         Log.d("RecalculateSnail", "Before recalc: Snail was at " + snailPositionBeforePause + ", Player was at " + playerPositionBeforePause);
-        Log.d("RecalculateSnail", "Current player position: " + currentPlayerLocation);
+        Log.d("RecalculateSnail", "Current player position: " + effectivePlayerLocation);
 
         // Snail speed in degrees per MILLISECOND for this calculation
         float snailMetersPerSecond = getSnailMetersPerSecond(currentSnailSpeedSetting) * snailSpeedMultiplier;
@@ -2335,12 +2341,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // --- IMPORTANT: Check for Game Over based on CURRENT player location ---
         float[] distanceToCurrentPlayerResults = new float[1]; // This is the array you want to use
         Location.distanceBetween(
-                currentPlayerLocation.latitude, currentPlayerLocation.longitude,
+                effectivePlayerLocation.latitude, effectivePlayerLocation.longitude,
                 snailPosition.latitude, snailPosition.longitude,
-                distanceToCurrentPlayerResults); // Use the correctly declared array
-        float distanceToCurrentPlayerMeters = distanceToCurrentPlayerResults[0]; // Now this will use the populated array
+                distanceToCurrentPlayerResults);
+        float distanceToCurrentPlayerMeters = distanceToCurrentPlayerResults[0];
 
-        Log.d("RecalculateSnail", "After recalc, snail is at " + snailPosition + ". Distance to CURRENT player (" + currentPlayerLocation + "): " + distanceToCurrentPlayerMeters + "m");
+        Log.d("RecalculateSnail", "After recalc, snail is at " + snailPosition + ". Distance to CURRENT player (" + effectivePlayerLocation + "): " + distanceToCurrentPlayerMeters + "m");
 
         if (distanceToCurrentPlayerMeters < gameOverDistanceMeters && !isGameOver) {
             long totalTimeElapsedSinceGameStart = SystemClock.elapsedRealtime() - gameStartTimeElapsedMillis;
