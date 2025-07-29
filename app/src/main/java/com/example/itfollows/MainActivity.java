@@ -159,6 +159,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String KEY_GAME_START_TIME_ELAPSED = "gameStartTimeElapsedMillis";
     private static final String KEY_SNAIL_HAS_SPAWNED_ON_PAUSE = "snailHasSpawnedOnPause";
     private static final String KEY_HAS_SAVED_GAME = "hasSavedGame";
+    // If the game state loads before the map is ready, we defer starting
+    // the chase until onMapReady is invoked
+    private boolean startChaseWhenMapReady = false;
     private RelativeLayout inventoryPanel;
     private Button inventoryButton, useSaltBombBtn;
     private TextView saltBombLabel;
@@ -2053,6 +2056,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void startSnailChase() {
         snailHandler.removeCallbacksAndMessages(null); // Ensure no duplicates
         Log.d("SnailChaseLogic", "startSnailChase called. isGameOver: " + isGameOver + ", SnailPos: " + snailPosition);
+        if (mMap == null) {
+            // Map not ready yet; remember to start once onMapReady fires
+            startChaseWhenMapReady = true;
+            Log.d("SnailChaseLogic", "Map not ready, deferring chase start");
+            return;
+        }
         if (isGameOver || snailPosition == null) { // Also check if snailPosition is null
             if (snailPosition == null && hasSpawnedSnail && !isGameOver) {
                 Log.e("SnailChaseLogic", "Snail position is null but chase was started! This shouldn't happen.");
@@ -2490,7 +2499,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         .color(Color.argb(180, 255, 100, 0)).width(12).addAll(snailTrailPoints);
                 snailTrail = mMap.addPolyline(polylineOptions);
             }
-
+            if (startChaseWhenMapReady) {
+                Log.d("SnailChaseLogic", "Map ready, starting deferred chase");
+                startChaseWhenMapReady = false;
+                startSnailChase();
+            }
         } else {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
         }
