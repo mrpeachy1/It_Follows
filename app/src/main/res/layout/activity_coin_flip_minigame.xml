@@ -1,6 +1,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:background="#000000"
+    android:background="@drawable/heads_tails"
     android:padding="24dp"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -20,12 +20,14 @@
     <Button
         android:id="@+id/headsBtn"
         android:text="Heads"
+        android:background="@android:color/transparent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
     <Button
         android:id="@+id/tailsBtn"
         android:text="Tails"
+        android:background="@android:color/transparent"
         android:layout_marginTop="16dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
