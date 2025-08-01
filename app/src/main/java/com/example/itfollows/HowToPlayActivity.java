@@ -1,7 +1,7 @@
 package com.example.itfollows;
 
 import android.os.Bundle;
-import android.widget.Button;
+import android.widget.ImageButton;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,7 +17,8 @@ public class HowToPlayActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_how_to_play);
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+        // Handle window insets (e.g. for edge-to-edge display)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.howToPlayLayout), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
@@ -26,9 +27,11 @@ public class HowToPlayActivity extends AppCompatActivity {
         // 🔊 Start shared ambient music
         MusicManager.start(this);
 
-        // 🔙 Handle Back button
-        Button backBtn = findViewById(R.id.buttonBack);
-        backBtn.setOnClickListener(v -> finish());
+        // ❌ Handle close button
+        ImageButton closeBtn = findViewById(R.id.closeButton);
+        if (closeBtn != null) {
+            closeBtn.setOnClickListener(v -> finish());
+        }
     }
 
     @Override

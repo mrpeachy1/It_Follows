@@ -1430,9 +1430,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         int decoyShellCount = powerUpPrefs.getInt("decoyShell", 0);
         int shellShieldCount = powerUpPrefs.getInt("shellShield", 0);
 
-        saltBombLabel.setText("🧊 Salt Bomb (" + saltBombCount + "/5)");
-        decoyShellLabel.setText("🐚 Decoy Shell (" + decoyShellCount + "/5)");
-        shellShieldLabel.setText("🛡️ Shell Shield (" + shellShieldCount + "/1)");
+        saltBombLabel.setText("Salt Bomb (" + saltBombCount + "/5)");
+        decoyShellLabel.setText("Decoy Shell (" + decoyShellCount + "/5)");
+        shellShieldLabel.setText("Shell Shield (" + shellShieldCount + "/1)");
 
         // Salt Bomb
         if (saltBombCount >= 5) {
