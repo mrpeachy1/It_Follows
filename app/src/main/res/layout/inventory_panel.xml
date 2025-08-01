@@ -92,5 +92,67 @@
         android:layout_marginEnd="122dp"
         android:background="@android:color/transparent"
         android:text="" />
+    <ImageView
+        android:id="@+id/backgroundImage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="-14dp"
+        android:layout_marginTop="8dp"
+        android:contentDescription="Inventory background"
+        android:scaleType="centerCrop"
+        android:src="@drawable/inventory" />
+
+    <!-- ❌ Close Button -->
+    <ImageButton
+        android:id="@+id/closeInventoryBtn"
+        android:layout_width="57dp"
+        android:layout_height="57dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/ic_close"
+        android:contentDescription="Close Inventory" />
+
+    <!-- 🧊 Salt Bomb Label -->
+    <TextView
+        android:id="@+id/saltBombLabel"
+        android:layout_width="186dp"
+        android:layout_height="40dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="134dp"
+        android:layout_marginTop="140dp"
+        android:text="Salt Bomb (0/5)"
+        android:textColor="#FCECCF"
+        android:textSize="25sp" />
+
+    <!-- 🌀 Decoy Shell Label -->
+    <TextView
+        android:id="@+id/decoyLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="134dp"
+        android:layout_marginTop="290dp"
+        android:text="Decoy Shell (0/5)"
+        android:textColor="#FCECCF"
+        android:textSize="25sp" />
+
+    <!-- 🛡️ Shell Shield Label -->
+    <TextView
+        android:id="@+id/shieldLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="134dp"
+        android:layout_marginTop="430dp"
+        android:text="Shell Shield (0/1)"
+        android:textColor="#FCECCF"
+        android:textSize="25sp" />
+
 
 </RelativeLayout>
