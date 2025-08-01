@@ -2110,7 +2110,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     snailSpeedMultiplier *= INACTIVITY_SPEED_MULTIPLIER;
                     snailInactivityBoostActive = true;
                     snailInactivityBoostEndTimeMs = now + INACTIVITY_BOOST_DURATION_MS;
-                    Toast.makeText(MainActivity.this, "Why did you stop?", Toast.LENGTH_SHORT).show();
                 }
                 float snailMetersPerSecond = getSnailMetersPerSecond(currentSnailSpeedSetting) * snailSpeedMultiplier;
                 float snailMetersPerMillisecond = snailMetersPerSecond / 1000f;
