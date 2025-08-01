@@ -1,40 +1,55 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:background="#000000"
-    android:padding="24dp"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center">
-    <!-- Background Image -->
+    android:background="@drawable/heads_tails"
+    android:padding="24dp">
 
     <TextView
         android:id="@+id/resultText"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Pick Heads or Tails"
+        android:text="Gamble some distance with the evil snail"
         android:textColor="#FFFFFF"
         android:textSize="22sp"
         android:gravity="center"
-        android:layout_marginBottom="24dp"/>
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="32dp"/>
 
     <Button
         android:id="@+id/headsBtn"
-        android:text="Heads"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_width="239dp"
+        android:layout_height="74dp"
+        android:layout_marginStart="60dp"
+        android:layout_marginTop="44dp"
+        android:background="@android:color/transparent"
+        android:text=""
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/resultText" />
 
     <Button
         android:id="@+id/tailsBtn"
-        android:text="Tails"
-        android:layout_marginTop="16dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_width="239dp"
+        android:layout_height="74dp"
+        android:layout_marginTop="136dp"
+        android:layout_marginEnd="64dp"
+        android:background="@android:color/transparent"
+        android:text=""
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/resultText" />
 
     <ImageView
         android:id="@+id/coinImage"
         android:layout_width="150dp"
         android:layout_height="150dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="24dp"
-        android:src="@drawable/coin_heads" />
-</LinearLayout>
+        android:layout_marginBottom="144dp"
+        android:src="@drawable/coin_heads"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
