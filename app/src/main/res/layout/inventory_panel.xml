@@ -11,15 +11,20 @@
     <!-- Note: android:layout_alignParentBottom="true" was also in a strange place, removed for now.
          If you want the whole panel at the bottom, this should be on the RelativeLayout
          within its PARENT layout (e.g., in activity_maps.xml if this is included there). -->
-
+    <!-- Background Image -->
     <!-- 🧊 Salt Bomb -->
-    <TextView
-        android:id="@+id/saltBombLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="🧊 Salt Bomb (0/5)"
-        android:textColor="#000000"
-        android:textSize="18sp" />
+
+    <ImageView
+        android:id="@+id/backgroundImage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="-6dp"
+        android:layout_marginTop="15dp"
+        android:contentDescription="Main menu background"
+        android:scaleType="centerCrop"
+        android:src="@drawable/inventory" />
 
     <TextView
         android:id="@+id/saltBombDesc"
@@ -31,24 +36,18 @@
         android:textSize="0dp"
         android:layout_marginTop="2dp"/>
 
+    <!-- 🌀 Decoy Shell -->
+
     <Button
         android:id="@+id/useSaltBombBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="134dp"
+        android:layout_height="59dp"
         android:layout_below="@id/saltBombDesc"
-        android:text="Use"
-        android:layout_marginTop="6dp" />
-
-    <!-- 🌀 Decoy Shell -->
-    <TextView
-        android:id="@+id/decoyLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/useSaltBombBtn"
-        android:text="🌀 Decoy Shell (0/5)"
-        android:textColor="#000000"
-        android:textSize="18sp"
-        android:layout_marginTop="16dp" />
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="181dp"
+        android:layout_marginEnd="122dp"
+        android:background="@android:color/transparent"
+        android:text="" />
 
     <TextView
         android:id="@+id/decoyDesc"
@@ -60,24 +59,18 @@
         android:textSize="0dp"
         android:layout_marginTop="2dp"/>
 
+    <!-- 🛡️ Shell Shield -->
+
     <Button
         android:id="@+id/useDecoyBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="140dp"
+        android:layout_height="60dp"
         android:layout_below="@id/decoyDesc"
-        android:text="Use"
-        android:layout_marginTop="6dp" />
-
-    <!-- 🛡️ Shell Shield -->
-    <TextView
-        android:id="@+id/shieldLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/useDecoyBtn"
-        android:text="🛡️ Shell Shield (0/1)"
-        android:textColor="#000000"
-        android:textSize="18sp"
-        android:layout_marginTop="16dp" />
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="323dp"
+        android:layout_marginEnd="122dp"
+        android:background="@android:color/transparent"
+        android:text="" />
 
     <TextView
         android:id="@+id/shieldDesc"
@@ -91,10 +84,13 @@
 
     <Button
         android:id="@+id/useShieldBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="138dp"
+        android:layout_height="58dp"
         android:layout_below="@id/shieldDesc"
-        android:text="Use"
-        android:layout_marginTop="6dp" />
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="465dp"
+        android:layout_marginEnd="122dp"
+        android:background="@android:color/transparent"
+        android:text="" />
 
 </RelativeLayout>
