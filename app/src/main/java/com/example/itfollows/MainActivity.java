@@ -164,6 +164,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean startChaseWhenMapReady = false;
     private RelativeLayout inventoryPanel;
     private Button inventoryButton, useSaltBombBtn;
+    private ImageButton closeInventoryBtn;
     private TextView saltBombLabel;
     private SharedPreferences powerUpPrefs;
     private SharedPreferences.Editor powerUpEditor;
@@ -695,6 +696,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         inventoryButton = findViewById(R.id.inventoryButton);
         inventoryPanel = findViewById(R.id.inventoryPanel);
+        closeInventoryBtn = findViewById(R.id.closeInventoryBtn);
         useSaltBombBtn = findViewById(R.id.useSaltBombBtn);
         saltBombLabel = findViewById(R.id.saltBombLabel);
 
@@ -707,6 +709,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 inventoryPanel.bringToFront(); // Ensure it's on top
             }
         });
+        closeInventoryBtn.setOnClickListener(v -> inventoryPanel.setVisibility(View.GONE));
 
         useSaltBombBtn.setOnClickListener(v -> {
             int count = powerUpPrefs.getInt("saltBomb", 0);
