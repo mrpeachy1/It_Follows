@@ -27,6 +27,14 @@
         android:src="@drawable/inventory" />
 
     <TextView
+        android:id="@+id/saltBombLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🧊 Salt Bomb (x0)"
+        android:textColor="#000000"
+        android:textSize="18sp" />
+
+    <TextView
         android:id="@+id/saltBombDesc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -50,6 +58,16 @@
         android:text="" />
 
     <TextView
+        android:id="@+id/decoyLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/useSaltBombBtn"
+        android:layout_marginTop="16dp"
+        android:text="🌀 Decoy Shell (x0)"
+        android:textColor="#000000"
+        android:textSize="18sp" />
+
+    <TextView
         android:id="@+id/decoyDesc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -71,6 +89,16 @@
         android:layout_marginEnd="122dp"
         android:background="@android:color/transparent"
         android:text="" />
+
+    <TextView
+        android:id="@+id/shieldLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/useDecoyBtn"
+        android:layout_marginTop="16dp"
+        android:text="🛡️ Shell Shield (x0)"
+        android:textColor="#000000"
+        android:textSize="18sp" />
 
     <TextView
         android:id="@+id/shieldDesc"
@@ -154,5 +182,15 @@
         android:textColor="#FCECCF"
         android:textSize="25sp" />
 
+
+    <ImageButton
+        android:id="@+id/closeInventoryBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:background="@android:color/transparent"
+        android:contentDescription="Close inventory"
+        android:src="@android:drawable/ic_menu_close_clear_cancel" />
 
 </RelativeLayout>
