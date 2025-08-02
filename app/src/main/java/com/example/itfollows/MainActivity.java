@@ -165,6 +165,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private RelativeLayout inventoryPanel;
     private Button inventoryButton, useSaltBombBtn;
     private ImageButton closeInventoryBtn;
+    private ImageButton closeShopBtn;
     private TextView saltBombLabel;
     private SharedPreferences powerUpPrefs;
     private SharedPreferences.Editor powerUpEditor;
@@ -331,7 +332,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onFinish() {
                 isSaltBombOnCooldown = false;
                 useSaltBombBtn.setEnabled(true);
-                useSaltBombBtn.setText("Use Salt Bomb");
+                useSaltBombBtn.setText("Use");
             }
         }.start();
     }
@@ -399,10 +400,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private TextView coinBalanceText;
-    private LinearLayout shopPanel;
+    private RelativeLayout shopPanel;
     private int snailCoinBalance;
     private void updateCoinDisplay() {
-        coinBalanceText.setText("💰 Snail Coins: " + snailCoinBalance);
+        coinBalanceText.setText("" + snailCoinBalance);
     }
     private int selectedRepelDistance = 100;
     private static final int MIN_REPEL = 50;
@@ -697,6 +698,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         inventoryButton = findViewById(R.id.inventoryButton);
         inventoryPanel = findViewById(R.id.inventoryPanel);
         closeInventoryBtn = findViewById(R.id.closeInventoryBtn);
+        closeShopBtn = findViewById(R.id.closeShopBtn);
         useSaltBombBtn = findViewById(R.id.useSaltBombBtn);
         saltBombLabel = findViewById(R.id.saltBombLabel);
 
@@ -710,6 +712,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
         closeInventoryBtn.setOnClickListener(v -> inventoryPanel.setVisibility(View.GONE));
+        closeShopBtn.setOnClickListener(v -> shopPanel.setVisibility(View.GONE));
 
         useSaltBombBtn.setOnClickListener(v -> {
             int count = powerUpPrefs.getInt("saltBomb", 0);
@@ -837,10 +840,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     long seconds = (millisUntilFinished / 1000) % 60;
                     long minutes = (millisUntilFinished / 1000 / 60) % 60;
                     long hours = (millisUntilFinished / 1000 / 60 / 60);
-                    String timeLeft = String.format("Cooldown: %02dh %02dm %02ds", hours, minutes, seconds);
-
                     repelButton.setText("Recharging... " + hours + "h " + minutes + "m " + seconds + "s");
-                    cooldownText.setText(timeLeft);
+
                 }
 
                 public void onFinish() {
@@ -1295,7 +1296,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onFinish() {
                 isShellShieldOnCooldown = false;
                 useShieldBtn.setEnabled(true);
-                useShieldBtn.setText("Use Shell Shield");
+                useShieldBtn.setText("Use");
             }
         }.start();
     }
@@ -1310,7 +1311,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onFinish() {
                 isDecoyShellOnCooldown = false;
                 useDecoyBtn.setEnabled(true);
-                useDecoyBtn.setText("Use Decoy Shell");
+                useDecoyBtn.setText("Use");
             }
         }.start();
     }

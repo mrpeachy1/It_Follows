@@ -42,7 +42,6 @@ diff --git a/app/src/main/res/layout/activity_maps.xml b/app/src/main/res/layout
 +            android:id="@+id/coinBalanceText"
 +            android:layout_width="wrap_content"
 +            android:layout_height="wrap_content"
-+            android:text="💰 Snail Coins: 1,000,000"
 +            android:textColor="#FFFF66"
 +            android:textSize="18sp"
 +            android:layout_marginBottom="12dp" />
