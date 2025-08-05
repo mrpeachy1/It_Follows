@@ -150,6 +150,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private float totalSnailDistanceBeforePause;
 
     private static final String PREFS_GAME_STATE = "SnailGameState";
+    private static final String PREFS_SNAIL_CURRENCY = "SnailCurrency";
     private static final String KEY_SNAIL_LAT_BEFORE_PAUSE = "snailLatBeforePause";
     private static final String KEY_SNAIL_LNG_BEFORE_PAUSE = "snailLngBeforePause";
     private static final String KEY_PLAYER_LAT_BEFORE_PAUSE = "playerLatBeforePause";
@@ -395,7 +396,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private int getSnailCoinBalance() {
-        SharedPreferences prefs = getSharedPreferences("SnailGameState", MODE_PRIVATE); // ✅ MATCHES updateSnailCoinBalance
+        SharedPreferences prefs = getSharedPreferences(PREFS_SNAIL_CURRENCY, MODE_PRIVATE);
         return prefs.getInt("snailCoins", 1_000_000); // default to 1 million only once
     }
 
@@ -413,7 +414,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final long SHELL_SWAP_COOLDOWN_MS = 86_400_000L; // 24 hours
     private void updateSnailCoinBalance(int newAmount) {
         snailCoinBalance = newAmount;
-        SharedPreferences.Editor editor = getSharedPreferences("SnailGameState", MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor = getSharedPreferences(PREFS_SNAIL_CURRENCY, MODE_PRIVATE).edit();
         editor.putInt("snailCoins", snailCoinBalance);
         editor.apply();
         updateCoinDisplay();
@@ -458,16 +459,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         powerUpEditor = powerUpPrefs.edit();
         updatePowerUpUI();
 
-        SharedPreferences currencyPrefs = getSharedPreferences("snailCoins", MODE_PRIVATE);
-        SharedPreferences.Editor currencyEditor = currencyPrefs.edit();
+        SharedPreferences currencyPrefs = getSharedPreferences(PREFS_SNAIL_CURRENCY, MODE_PRIVATE);
 
         if (!currencyPrefs.contains("snailCoins")) {
-            currencyEditor.putInt("snailCoins", 1_000_000);
-            currencyEditor.apply();
+            currencyPrefs.edit().putInt("snailCoins", 1_000_000).apply();
         }
 
-        snailCoinBalance = getSharedPreferences("SnailGameState", MODE_PRIVATE)
-                .getInt("snailCoins", 1_000_000);
+        snailCoinBalance = currencyPrefs.getInt("snailCoins", 1_000_000);
 
         shopPanel = findViewById(R.id.shopPanel);
         coinBalanceText = findViewById(R.id.coinBalanceText);
@@ -1579,11 +1577,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     private void clearGameStatePrefs() {
+        int coins = getSnailCoinBalance();
         SharedPreferences prefs = getSharedPreferences(PREFS_GAME_STATE, MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         editor.clear();
         editor.putBoolean(KEY_HAS_SAVED_GAME, false);
         editor.apply();
+        updateSnailCoinBalance(coins);
         // Also clear the in-memory variables related to pause state
         snailPositionBeforePause = null;
         playerPositionBeforePause = null;
