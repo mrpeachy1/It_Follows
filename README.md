@@ -20,7 +20,6 @@ A GPS-based horror game for Android where a relentless snail slowly chases you i
 ## 🧙 Credits
 - Concept inspired by It Follows
 - Code & Design: [mrpeachy1]
-- Pixel Art: [mrpeachy1]
 - Sound FX: [Horror Ambient Pack by Puritune]
 - Map SDK: Google Maps Platform
 
