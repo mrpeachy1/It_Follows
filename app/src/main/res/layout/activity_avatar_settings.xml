@@ -7,6 +7,7 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    <!-- Editor (fills remaining space) -->
     <com.example.itfollows.avatar.AvatarEditorView
         android:id="@+id/avatarEditor"
         android:layout_width="match_parent"
@@ -14,43 +15,90 @@
         android:layout_weight="1"
         android:contentDescription="8-bit avatar editor" />
 
+    <!-- Palette row (h-scroll) -->
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="64dp"
-        android:layout_marginTop="12dp">
+        android:layout_marginTop="12dp"
+        android:fillViewport="true"
+        android:overScrollMode="never">
+
         <LinearLayout
             android:id="@+id/paletteRow"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:orientation="horizontal"/>
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"/>
     </HorizontalScrollView>
 
+    <!-- Action area: two lines -->
     <LinearLayout
+        android:id="@+id/actionBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="end"
-        android:orientation="horizontal"
-        android:layout_marginTop="12dp">
+        android:layout_marginTop="12dp"
+        android:orientation="vertical">
 
-        <Button
-            android:id="@+id/btnClear"
-            android:layout_width="wrap_content"
+        <!-- Row 1: left cluster + spacer + right cluster -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Clear"/>
+            android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/btnRandom"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Randomize"
-            android:layout_marginStart="8dp"/>
+            <!-- Left cluster -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/btnSave"
-            android:layout_width="wrap_content"
+                <Button
+                    android:id="@+id/btnUseDefault"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Use Default"/>
+
+                <Button
+                    android:id="@+id/btnImportPhoto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Import Photo"
+                    android:layout_marginStart="8dp"/>
+
+                <Button
+                    android:id="@+id/btnClear"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Clear" />
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Row 2: SAVE anchored to bottom-right -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Save"
-            android:layout_marginStart="8dp"/>
+            android:layout_marginTop="8dp"
+            android:gravity="end"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnRandom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Randomize" />
+
+            <Button
+                android:id="@+id/btnSave"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Save" />
+
+
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>

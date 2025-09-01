@@ -424,6 +424,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private int snailCoinBalance;
     private void updateCoinDisplay() {
         coinBalanceText.setText("" + snailCoinBalance);
+        if (coinBalanceText != null) {
+            coinBalanceText.setText("" + snailCoinBalance);
+        }
     }
     private int selectedRepelDistance = 100;
     private static final int MIN_REPEL = 50;
@@ -447,6 +450,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        shopPanel = findViewById(R.id.shopPanel);
+        coinBalanceText = findViewById(R.id.coinBalanceText);
         SharedPreferences statePrefs = getSharedPreferences(PREFS_GAME_STATE, MODE_PRIVATE);
         boolean hasSavedGame = statePrefs.getBoolean(KEY_HAS_SAVED_GAME, false)
                 && statePrefs.contains(KEY_SNAIL_LAT_BEFORE_PAUSE)
@@ -486,8 +491,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         snailCoinBalance = currencyPrefs.getInt("snailCoins", 1_000_000);
 
-        shopPanel = findViewById(R.id.shopPanel);
-        coinBalanceText = findViewById(R.id.coinBalanceText);
         updateCoinDisplay();
 
         ImageButton shopToggle = findViewById(R.id.shopToggleButton);
@@ -2024,8 +2027,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         locationRequest.setFastestInterval(250); // Fastest interval if available from other apps
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         if (mMap != null) {
-            mMap.setMyLocationEnabled(true);
-            mMap.getUiSettings().setMyLocationButtonEnabled(true);
+            mMap.setMyLocationEnabled(false);
+            mMap.getUiSettings().setMyLocationButtonEnabled(false);
         }
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, getMainLooper());
     }
