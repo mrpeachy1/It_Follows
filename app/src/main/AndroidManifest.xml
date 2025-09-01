@@ -64,6 +64,11 @@
         <activity android:name=".SlimeTapMinigameActivity" />
         <activity android:name=".CoinFlipMinigameActivity" />
         <activity android:name=".HoldToSurviveMinigameActivity" />
+        <activity
+            android:name=".avatar.AvatarSettingsActivity"
+            android:exported="false"
+            android:label="Customize Avatar"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <!-- Sample AdMob App ID. Replace with your actual App ID from AdMob console. -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"

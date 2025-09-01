@@ -65,8 +65,9 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import java.util.concurrent.TimeUnit;
 import java.util.Locale;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.Marker;
+import com.example.itfollows.avatar.AvatarConfig;
+import com.example.itfollows.avatar.AvatarRenderer;
+import com.example.itfollows.avatar.AvatarStorage;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -100,6 +101,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private int shellShieldCount = 0;
     private int decoyShellCount = 0;
     private Marker playerMarker;
+    private android.content.SharedPreferences.OnSharedPreferenceChangeListener avatarListener;
 
     private static final String MINIGAME_PREFS = "MinigamePrefs";
     private static final String KEY_LAST_PLAYED_DATE = "LastPlayedDate";
@@ -217,30 +219,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private long shellSplitEndTimeMs;
     private static final long SHELL_SPLIT_DURATION_MS = 60 * 60 * 1000L; // 60 minutes
 
-    private Marker playerMarker;
-
     private void placeOrUpdatePlayerMarker(LatLng playerLatLng) {
         AvatarConfig cfg = AvatarStorage.load(this);
         Bitmap avatar = AvatarRenderer.render(cfg, 128, false, true); // 128px, outline on
-
-        if (playerMarker == null) {
-            playerMarker = mMap.addMarker(new MarkerOptions()
-                    .position(playerLatLng)
-                    .icon(BitmapDescriptorFactory.fromBitmap(avatar))
-                    .anchor(0.5f, 0.5f)
-                    .zIndex(1000f)
-                    .title("You"));
-        } else {
-            playerMarker.setPosition(playerLatLng);
-            playerMarker.setIcon(BitmapDescriptorFactory.fromBitmap(avatar));
-        }
-    }
-    private Marker playerMarker;
-
-    private void placeOrUpdatePlayerMarker(LatLng playerLatLng) {
-        AvatarConfig cfg = AvatarStorage.load(this);
-        Bitmap avatar = AvatarRenderer.render(cfg, 128, false, true); // 128px, outline on
-
         if (playerMarker == null) {
             playerMarker = mMap.addMarker(new MarkerOptions()
                     .position(playerLatLng)
@@ -948,7 +929,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         currentPlayerLocation = oldSnailPos;
         playerPosition = oldSnailPos;
-        if (playerMarker != null) playerMarker.setPosition(oldSnailPos);
+        if (mMap != null) placeOrUpdatePlayerMarker(oldSnailPos);
         if (mMap != null) mMap.animateCamera(CameraUpdateFactory.newLatLng(oldSnailPos));
     }
 
@@ -1973,12 +1954,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         lastSpeedCheckTimeMs = now;
                         lastMovementTimeMs = now;
                     }
-                    if (playerMarker == null && mMap != null) {
-                        playerMarker = mMap.addMarker(new MarkerOptions()
-                                .position(currentPlayerLocation)
-                                .title("You"));
-                    } else if (playerMarker != null) {
-                        playerMarker.setPosition(currentPlayerLocation); // keep updating it
+                    if (mMap != null) {
+                        placeOrUpdatePlayerMarker(currentPlayerLocation);
                     }
                     if (lastRewardCheckLocation != null && currentPlayerLocation != null) {
                         float[] result = new float[1];
@@ -2535,6 +2512,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (hasSpawnedSnail && snailPosition != null) { // Snail was spawned but marker lost (e.g. config change)
                 updateSnailMarker();
             }
+            if (currentPlayerLocation != null) {
+                placeOrUpdatePlayerMarker(currentPlayerLocation);
+            }
             if (hasSpawnedSnail && snailTrailPoints != null && !snailTrailPoints.isEmpty() && snailTrail == null) { // Trail lost
                 PolylineOptions polylineOptions = new PolylineOptions()
                         .color(Color.argb(180, 255, 100, 0)).width(12).addAll(snailTrailPoints);
@@ -2606,6 +2586,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onPause() {
         super.onPause();
         Log.d(TAG_MAIN_ACTIVITY, "onPause called");
+        if (avatarListener != null) {
+            AvatarStorage.prefs(this).unregisterOnSharedPreferenceChangeListener(avatarListener);
+        }
         SharedPreferences.Editor editor = getSharedPreferences("GameSettings", MODE_PRIVATE).edit();
         editor.putBoolean("vibration", false);
         editor.apply();
@@ -2638,6 +2621,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onResume() {
         super.onResume();
         Log.d(TAG_MAIN_ACTIVITY, "onResume called");
+        if (avatarListener == null) {
+            avatarListener = (sp, key) -> {
+                if ("avatarConfig".equals(key) && playerMarker != null) {
+                    AvatarConfig cfg = AvatarStorage.load(this);
+                    android.graphics.Bitmap avatar = AvatarRenderer.render(cfg, 128, false, true);
+                    playerMarker.setIcon(BitmapDescriptorFactory.fromBitmap(avatar));
+                }
+            };
+        }
+        AvatarStorage.prefs(this).registerOnSharedPreferenceChangeListener(avatarListener);
         // Activity returned to foreground
         isInBackground = false;
         // Minigame activities have ended when we return here

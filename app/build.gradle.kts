@@ -59,6 +59,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-ads:24.4.0") // Check for the latest version
     implementation("com.google.android.ump:user-messaging-platform:3.2.0") // Or the latest version
     implementation (libs.androidx.localbroadcastmanager)
+    implementation("com.google.code.gson:gson:2.11.0")
 }
 secrets {
     // To add your Maps API key to this project:

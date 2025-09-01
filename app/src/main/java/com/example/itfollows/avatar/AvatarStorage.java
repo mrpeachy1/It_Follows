@@ -1,3 +1,5 @@
+package com.example.itfollows.avatar;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import com.google.gson.Gson;
@@ -11,11 +13,8 @@ public class AvatarStorage {
         SharedPreferences sp = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         String json = sp.getString(KEY, null);
         if (json == null) return new AvatarConfig();
-        try {
-            return gson.fromJson(json, AvatarConfig.class);
-        } catch (Exception e) {
-            return new AvatarConfig();
-        }
+        try { return gson.fromJson(json, AvatarConfig.class); }
+        catch (Exception e) { return new AvatarConfig(); }
     }
 
     public static void save(Context ctx, AvatarConfig cfg) {

@@ -99,6 +99,20 @@
             app:layout_constraintTop_toBottomOf="@id/buttonHowToPlay"
             android:theme="@style/ThemeOverlay.NoMaterialTint" />
 
+        <Button
+            android:id="@+id/btnCustomizeAvatar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="32dp"
+            android:layout_marginTop="48dp"
+            android:background="@drawable/button_translucent_bg"
+            android:text="Customize Avatar"
+            android:textColor="#FFFFFF"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/buttonSettings"
+            android:theme="@style/ThemeOverlay.NoMaterialTint" />
+
         <!-- Credits Button -->
         <Button
             android:id="@+id/buttonCredits"
@@ -111,7 +125,7 @@
             android:textColor="#FFFFFF"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/buttonSettings"
+            app:layout_constraintTop_toBottomOf="@id/btnCustomizeAvatar"
             android:theme="@style/ThemeOverlay.NoMaterialTint" />
         <TextView
             android:id="@+id/snailWarningText"
