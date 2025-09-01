@@ -65,6 +65,8 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import java.util.concurrent.TimeUnit;
 import java.util.Locale;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Marker;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -215,6 +217,42 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private long shellSplitEndTimeMs;
     private static final long SHELL_SPLIT_DURATION_MS = 60 * 60 * 1000L; // 60 minutes
 
+    private Marker playerMarker;
+
+    private void placeOrUpdatePlayerMarker(LatLng playerLatLng) {
+        AvatarConfig cfg = AvatarStorage.load(this);
+        Bitmap avatar = AvatarRenderer.render(cfg, 128, false, true); // 128px, outline on
+
+        if (playerMarker == null) {
+            playerMarker = mMap.addMarker(new MarkerOptions()
+                    .position(playerLatLng)
+                    .icon(BitmapDescriptorFactory.fromBitmap(avatar))
+                    .anchor(0.5f, 0.5f)
+                    .zIndex(1000f)
+                    .title("You"));
+        } else {
+            playerMarker.setPosition(playerLatLng);
+            playerMarker.setIcon(BitmapDescriptorFactory.fromBitmap(avatar));
+        }
+    }
+    private Marker playerMarker;
+
+    private void placeOrUpdatePlayerMarker(LatLng playerLatLng) {
+        AvatarConfig cfg = AvatarStorage.load(this);
+        Bitmap avatar = AvatarRenderer.render(cfg, 128, false, true); // 128px, outline on
+
+        if (playerMarker == null) {
+            playerMarker = mMap.addMarker(new MarkerOptions()
+                    .position(playerLatLng)
+                    .icon(BitmapDescriptorFactory.fromBitmap(avatar))
+                    .anchor(0.5f, 0.5f)
+                    .zIndex(1000f)
+                    .title("You"));
+        } else {
+            playerMarker.setPosition(playerLatLng);
+            playerMarker.setIcon(BitmapDescriptorFactory.fromBitmap(avatar));
+        }
+    }
     private void updateSnailIcon() {
         // Implement the logic to update the snail's icon here.
         // For example, if you want to change the snailMarker's icon:
