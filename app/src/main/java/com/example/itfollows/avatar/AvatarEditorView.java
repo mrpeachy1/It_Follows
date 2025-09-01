@@ -1,3 +1,5 @@
+package com.example.itfollows.avatar;
+
 import android.content.Context;
 import android.graphics.*;
 import android.util.AttributeSet;
@@ -12,17 +14,16 @@ public class AvatarEditorView extends View {
     private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Rect r = new Rect();
 
+    public AvatarEditorView(Context c){ super(c); }
     public AvatarEditorView(Context c, AttributeSet a){ super(c,a); }
+    public AvatarEditorView(Context c, AttributeSet a, int s){ super(c,a,s); }
 
     public void setConfig(AvatarConfig cfg){
         this.cfg = cfg;
         invalidate();
     }
 
-    public void setCurrentColorIndex(int idx){
-        this.currentColorIndex = idx;
-    }
-
+    public void setCurrentColorIndex(int idx){ this.currentColorIndex = idx; }
     public void setDrawGrid(boolean on){ this.drawGrid = on; invalidate(); }
 
     @Override protected void onDraw(Canvas canvas) {
@@ -37,21 +38,16 @@ public class AvatarEditorView extends View {
 
         canvas.drawColor(0xFF1E1E1E);
 
-        // Pixels
         for(int y=0;y<py;y++){
             for(int x=0;x<px;x++){
                 int idx = cfg.get(x,y);
-                if (idx >= 0 && idx < cfg.palette.length) {
-                    p.setColor(cfg.palette[idx]);
-                } else {
-                    p.setColor(0x00000000);
-                }
+                if (idx >= 0 && idx < cfg.palette.length) p.setColor(cfg.palette[idx]);
+                else p.setColor(0x00000000);
                 r.set(left + x*cell, top + y*cell, left + (x+1)*cell, top + (y+1)*cell);
                 canvas.drawRect(r, p);
             }
         }
 
-        // Grid
         if (drawGrid) {
             Paint grid = new Paint();
             grid.setColor(0x33FFFFFF);
@@ -69,13 +65,12 @@ public class AvatarEditorView extends View {
 
     @Override public boolean onTouchEvent(MotionEvent e) {
         if (cfg == null) return true;
-
         int action = e.getActionMasked();
-        if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE || action == MotionEvent.ACTION_POINTER_DOWN) {
+        if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE) {
             paintAt(e.getX(), e.getY(), false);
             return true;
-        } else if (action == MotionEvent.ACTION_LONG_PRESS || action == MotionEvent.ACTION_BUTTON_PRESS) {
-            paintAt(e.getX(), e.getY(), true); // eyedrop
+        } else if (action == MotionEvent.ACTION_BUTTON_PRESS) {
+            paintAt(e.getX(), e.getY(), true); // eyedrop if supported
             return true;
         }
         return super.onTouchEvent(e);

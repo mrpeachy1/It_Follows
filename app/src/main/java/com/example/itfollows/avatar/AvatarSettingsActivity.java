@@ -1,9 +1,12 @@
+package com.example.itfollows.avatar;
+
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import com.example.itfollows.R;
 
 public class AvatarSettingsActivity extends AppCompatActivity {
     private AvatarConfig cfg;
@@ -43,9 +46,6 @@ public class AvatarSettingsActivity extends AppCompatActivity {
 
         btnSave.setOnClickListener(v -> {
             AvatarStorage.save(this, cfg);
-            // Optionally, stash a pre-rendered PNG size for map marker speed:
-            // Bitmap b = AvatarRenderer.render(cfg, 128, false, true);
-            // ...save if you like...
             finish();
         });
     }

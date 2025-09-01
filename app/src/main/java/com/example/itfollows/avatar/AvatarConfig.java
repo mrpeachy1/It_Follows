@@ -1,3 +1,5 @@
+package com.example.itfollows.avatar;
+
 public class AvatarConfig {
     public static final int WIDTH = 16;
     public static final int HEIGHT = 16;
@@ -19,7 +21,7 @@ public class AvatarConfig {
 
     public AvatarConfig() {
         for (int i = 0; i < pixels.length; i++) pixels[i] = -1; // start fully transparent
-        // Optional: simple face seed
+        // Seed: simple face (optional)
         dot(7, 6, 1); dot(8, 6, 1); // eyes
         line(6, 10, 9, 10, 3);      // mouth (red)
         fillRect(5, 3, 10, 12, 2);  // light-gray head
@@ -30,6 +32,7 @@ public class AvatarConfig {
     private void fillRect(int x0,int y0,int x1,int y1,int c){
         for(int y=y0;y<=y1;y++) for(int x=x0;x<=x1;x++) set(x,y,c);
     }
+
     public void set(int x,int y,int c){
         if (x<0||y<0||x>=WIDTH||y>=HEIGHT) return;
         pixels[y*WIDTH + x] = c;

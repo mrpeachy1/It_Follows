@@ -1,13 +1,12 @@
+package com.example.itfollows.avatar;
+
 import android.graphics.*;
 
 public class AvatarRenderer {
 
     /**
-     * Renders the 16x16 avatar to a Bitmap at requested pixel size (e.g., 256 → crisp 16:1 scale).
-     * @param cfg avatar config
-     * @param outSize output size in pixels (square)
-     * @param drawGrid whether to draw subtle grid lines
-     * @param drawOutline whether to draw a 1px dark outline around non-transparent edges
+     * Renders the 16x16 avatar to a Bitmap at requested pixel size (e.g., 128 or 192).
+     * Nearest-neighbor, optional outline and grid (grid off by default for marker).
      */
     public static Bitmap render(AvatarConfig cfg, int outSize, boolean drawGrid, boolean drawOutline) {
         int w = AvatarConfig.WIDTH, h = AvatarConfig.HEIGHT;
@@ -17,10 +16,9 @@ public class AvatarRenderer {
         Bitmap bmp = Bitmap.createBitmap(bmpW, bmpH, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bmp);
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-        p.setFilterBitmap(false); // nearest-neighbor look
+        p.setFilterBitmap(false);
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
 
-        // Draw pixels
         Rect r = new Rect();
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
@@ -39,10 +37,8 @@ public class AvatarRenderer {
             Paint grid = new Paint();
             grid.setColor(0x22FFFFFF);
             grid.setStrokeWidth(1f);
-            for (int gx = 1; gx < w; gx++)
-                canvas.drawLine(gx * scale, 0, gx * scale, bmpH, grid);
-            for (int gy = 1; gy < h; gy++)
-                canvas.drawLine(0, gy * scale, bmpW, gy * scale, grid);
+            for (int gx = 1; gx < w; gx++) canvas.drawLine(gx * scale, 0, gx * scale, bmpH, grid);
+            for (int gy = 1; gy < h; gy++) canvas.drawLine(0, gy * scale, bmpW, gy * scale, grid);
         }
 
         return bmp;
@@ -53,12 +49,10 @@ public class AvatarRenderer {
         Paint outline = new Paint();
         outline.setColor(0xFF1A1A1A);
         outline.setStrokeWidth(1f);
-        // Outline if pixel borders transparency
         for(int y=0;y<h;y++){
             for(int x=0;x<w;x++){
                 int idx = cfg.get(x,y);
                 if (idx < 0) continue;
-                // Check four neighbors for transparency
                 if (cfg.get(x-1,y) < 0) c.drawLine(x*s, y*s, x*s, (y+1)*s, outline);
                 if (cfg.get(x+1,y) < 0) c.drawLine((x+1)*s, y*s, (x+1)*s, (y+1)*s, outline);
                 if (cfg.get(x,y-1) < 0) c.drawLine(x*s, y*s, (x+1)*s, y*s, outline);
