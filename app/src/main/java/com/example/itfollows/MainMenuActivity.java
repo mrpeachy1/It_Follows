@@ -103,9 +103,6 @@ public class MainMenuActivity extends AppCompatActivity {
 
         findViewById(R.id.buttonCredits).setOnClickListener(v ->
                 startActivity(new Intent(this, CreditsActivity.class)));
-
-        findViewById(R.id.btnCustomizeAvatar).setOnClickListener(v ->
-                startActivity(new Intent(this, com.example.itfollows.avatar.AvatarSettingsActivity.class)));
     }
 
 
