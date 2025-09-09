@@ -41,7 +41,7 @@ public class SettingsActivity extends AppCompatActivity {
     private SnailSpriteAdapter snailSpriteAdapter;
     private List<SnailSprite> spriteList;
     private String currentSelectedSpriteIdentifier;
-    private static final String PREFS_NAME = "GameSettings"; // Ensure this matches MainActivity
+    private static final String PREFS_NAME = "GameSettings"; // Ensure this matches GameActivity
     public static final String KEY_SELECTED_SNAIL_SPRITE = "selectedSnailSprite";
     // Update options if they are different for Spinners
     private final String[] speedOptions = {"Sluggish Crawl","Fast Snail","Turtle Speed","Casual Walk","Power Walk","Jogging Snail","Running Snail","Olympic Sprinting Snail","Snail Drives Car"};
@@ -268,7 +268,7 @@ public class SettingsActivity extends AppCompatActivity {
         String savedUnit = prefs.getString(KEY_MEASUREMENT_UNIT, "Metric");
         setSpinnerSelection(measurementUnitDropdown, unitOptions, savedUnit);
 
-        Log.d("MainActivity_Settings", "Speed: " + savedSpeed + ", Distance: " + savedDistance + ", Units: " + savedUnit);
+        Log.d("GameActivity_Settings", "Speed: " + savedSpeed + ", Distance: " + savedDistance + ", Units: " + savedUnit);
         Log.d("SettingsActivity", "Preferences loaded. Volume: " + volumeSlider.getProgress() +
                 ", Speed: " + savedSpeed + ", Distance: " + savedDistance +
                 ", Units: " + savedUnit +
