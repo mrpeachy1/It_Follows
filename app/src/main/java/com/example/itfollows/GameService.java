@@ -3,8 +3,11 @@ package com.example.itfollows;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.IBinder;
+import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
@@ -67,5 +70,18 @@ public class GameService extends Service {
 
     private void scheduleReconcile() {
         ReconcileScheduler.schedule(getApplicationContext());
+    }
+
+    /**
+     * Clears any persisted game state so a new game can start fresh.
+     *
+     * @param context context used to access shared preferences
+     */
+    public static void clearSavedState(Context context) {
+        SharedPreferences.Editor editor =
+                context.getSharedPreferences("SnailGameState", Context.MODE_PRIVATE).edit();
+        editor.clear();
+        editor.apply();
+        Log.d("GameService", "Saved game state cleared.");
     }
 }
