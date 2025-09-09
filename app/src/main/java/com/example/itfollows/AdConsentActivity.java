@@ -48,7 +48,7 @@ public class AdConsentActivity extends AppCompatActivity {
 
     private static final String TAG = "AdConsentActivity";
     private final AtomicBoolean isMobileAdsInitializeCalled = new AtomicBoolean(false);
-    private final AtomicBoolean isMainActivityLaunched = new AtomicBoolean(false); // To prevent multiple launches
+    private final AtomicBoolean isGameActivityLaunched = new AtomicBoolean(false); // To prevent multiple launches
     private GoogleMobileAdsConsentManager googleMobileAdsConsentManager;
 
     @Override
@@ -74,8 +74,8 @@ public class AdConsentActivity extends AppCompatActivity {
                     if (googleMobileAdsConsentManager.canRequestAds()) {
                         initializeMobileAdsSdkAndPreload();
                     } else {
-                        Log.d(TAG, "Cannot request ads based on consent. Proceeding to MainActivity.");
-                        launchMainActivityOnce();
+                        Log.d(TAG, "Cannot request ads based on consent. Proceeding to GameActivity.");
+                        launchGameActivityOnce();
                     }
                 });
 
@@ -126,19 +126,19 @@ public class AdConsentActivity extends AppCompatActivity {
                                             public void onAdLoaded(@NonNull RewardedAd rewardedAd) {
                                                 AdManager.getInstance().setPreloadedRewardedAd(rewardedAd);
                                                 Log.i(TAG, "Rewarded ad pre-loaded successfully.");
-                                                launchMainActivityOnce();
+                                                launchGameActivityOnce();
                                             }
 
                                             @Override
                                             public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
                                                 Log.e(TAG, "Rewarded ad failed to pre-load: " + loadAdError.getMessage());
                                                 AdManager.getInstance().setPreloadedRewardedAd(null);
-                                                launchMainActivityOnce();
+                                                launchGameActivityOnce();
                                             }
                                         });
                             } else {
-                                Log.d(TAG, "Cannot request ads for pre-loading after SDK init. Proceeding to MainActivity.");
-                                launchMainActivityOnce();
+                                Log.d(TAG, "Cannot request ads for pre-loading after SDK init. Proceeding to GameActivity.");
+                                launchGameActivityOnce();
                             }
                         });
                     });
@@ -146,14 +146,14 @@ public class AdConsentActivity extends AppCompatActivity {
                 .start();
     }
 
-    private void launchMainActivityOnce() {
-        if (isMainActivityLaunched.compareAndSet(false, true)) {
+    private void launchGameActivityOnce() {
+        if (isGameActivityLaunched.compareAndSet(false, true)) {
             if (isFinishing() || isDestroyed()) {
-                Log.w(TAG, "Activity is finishing, not launching MainActivity.");
+                Log.w(TAG, "Activity is finishing, not launching GameActivity.");
                 return;
             }
-            Log.d(TAG, "Launching MainActivity.");
-            Intent intent = new Intent(AdConsentActivity.this, MainActivity.class);
+            Log.d(TAG, "Launching GameActivity.");
+            Intent intent = new Intent(AdConsentActivity.this, GameActivity.class);
             startActivity(intent);
             finish();
         }

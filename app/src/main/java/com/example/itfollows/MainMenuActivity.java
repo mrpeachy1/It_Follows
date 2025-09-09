@@ -40,7 +40,7 @@ public class MainMenuActivity extends AppCompatActivity {
         Log.d("MainMenuActivity", "Power-ups reset for new game.");
 
         // Step 2: Start the game activity
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(this, GameActivity.class);
         intent.putExtra("isNewGame", true);
         startActivity(intent);
     }
@@ -81,7 +81,7 @@ public class MainMenuActivity extends AppCompatActivity {
         newGameButton.setOnClickListener(v -> {
             stopGameServiceAndReset(); // Stop current game
             clearSavedState();         // Optional: clear saved state
-            Intent intent = new Intent(this, MainActivity.class);
+            Intent intent = new Intent(this, GameActivity.class);
             intent.putExtra("isNewGame", true);
             startActivity(intent);
         });
@@ -89,7 +89,7 @@ public class MainMenuActivity extends AppCompatActivity {
         // ✅ Resume Game
         continueButton.setOnClickListener(v -> {
             GameManager.isNewGame = false;
-            Intent intent = new Intent(this, MainActivity.class);
+            Intent intent = new Intent(this, GameActivity.class);
             intent.putExtra("isNewGame", false);
             startActivity(intent);
         });

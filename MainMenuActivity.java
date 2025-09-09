@@ -14,7 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
         }
 
         public void startGame(View view) {
-            Intent intent = new Intent(MainMenuActivity.this, MainActivity.class);
+            Intent intent = new Intent(MainMenuActivity.this, GameActivity.class);
             startActivity(intent);
         }
     }
