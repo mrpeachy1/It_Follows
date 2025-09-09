@@ -59,6 +59,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-ads:24.4.0") // Check for the latest version
     implementation("com.google.android.ump:user-messaging-platform:3.2.0") // Or the latest version
     implementation (libs.androidx.localbroadcastmanager)
+    implementation("androidx.work:work-runtime:2.9.0")
     implementation("androidx.activity:activity:1.9.2")
     implementation("androidx.fragment:fragment:1.8.3")
     implementation("com.google.code.gson:gson:2.11.0")
