@@ -50,7 +50,8 @@ public class SnailPhysics {
 
         double d = GeoMath.haversineMeters(moved[0], moved[1], player[0], player[1]);
         if (d < repo.getGameOverRadiusMeters()) {
-            LocalBroadcastManager.getInstance(app).sendBroadcast(new Intent("ACTION_GAME_OVER"));
+            LocalBroadcastManager.getInstance(app).sendBroadcast(
+                    new Intent(GameService.ACTION_GAME_OVER));
         }
     }
 }

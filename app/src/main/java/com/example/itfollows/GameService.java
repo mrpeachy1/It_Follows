@@ -15,6 +15,8 @@ import com.google.android.gms.location.Priority;
 
 public class GameService extends Service {
     private static final int NOTIF_ID = 42;
+    public static final String ACTION_GAME_STATE_UPDATE = "ACTION_GAME_STATE_UPDATE";
+    public static final String ACTION_GAME_OVER = "ACTION_GAME_OVER";
     private FusedLocationProviderClient fused;
     private PendingIntent locationPI;
 
