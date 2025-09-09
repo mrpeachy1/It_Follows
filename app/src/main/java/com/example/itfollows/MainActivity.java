@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
         lbm.registerReceiver(tickReceiver, new IntentFilter("GAME_TICK"));
-        lbm.registerReceiver(gameOverReceiver, new IntentFilter("ACTION_GAME_OVER"));
+        lbm.registerReceiver(gameOverReceiver, new IntentFilter(GameService.ACTION_GAME_OVER));
         updateDistanceUI();
     }
 

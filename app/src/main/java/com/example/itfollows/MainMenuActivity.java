@@ -28,12 +28,6 @@ public class MainMenuActivity extends AppCompatActivity {
         Log.d("MainMenuActivity", "GameService stopped (reset for new game).");
     }
 
-    private void clearSavedState() {
-        SharedPreferences.Editor editor = getSharedPreferences("SnailGameState", MODE_PRIVATE).edit();
-        editor.clear();
-        editor.apply();
-        Log.d("MainMenuActivity", "Saved game state cleared.");
-    }
     public void onStartNewGameClick(View view) {
         // Step 1: Clear the power-up inventory
         resetPowerUps();
@@ -80,7 +74,7 @@ public class MainMenuActivity extends AppCompatActivity {
         Button newGameButton = findViewById(R.id.buttonStart);
         newGameButton.setOnClickListener(v -> {
             stopGameServiceAndReset(); // Stop current game
-            clearSavedState();         // Optional: clear saved state
+            GameService.clearSavedState(this); // Optional: clear saved state
             Intent intent = new Intent(this, GameActivity.class);
             intent.putExtra("isNewGame", true);
             startActivity(intent);

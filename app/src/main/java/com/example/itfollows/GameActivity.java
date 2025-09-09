@@ -2457,8 +2457,6 @@ public class GameActivity extends AppCompatActivity implements OnMapReadyCallbac
         filter.addAction(GameService.ACTION_GAME_STATE_UPDATE);
         filter.addAction(GameService.ACTION_GAME_OVER);
         LocalBroadcastManager.getInstance(this).registerReceiver(gameStateReceiver, filter);
-        LocalBroadcastManager.getInstance(this).registerReceiver(gameStateReceiver,
-                new IntentFilter("GAME_STATE_UPDATE"));
         if (isGameServiceRunning()) {
             isGameServiceActive = true; // Acknowledge service is running
             Log.d(TAG_MAIN_ACTIVITY, "Activity starting, GameService already running. Will listen for updates.");
@@ -2596,7 +2594,7 @@ public class GameActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         LocalBroadcastManager.getInstance(this).registerReceiver(gameOverReceiver,
-                new IntentFilter("GAME_OVER"));
+                new IntentFilter(GameService.ACTION_GAME_OVER));
         stopLocationUpdates();
     }
 
@@ -2630,7 +2628,7 @@ public class GameActivity extends AppCompatActivity implements OnMapReadyCallbac
         coinBalanceText.setText("🪙 " + balance);
         // Register game over receiver
         LocalBroadcastManager.getInstance(this).registerReceiver(gameOverReceiver,
-                new IntentFilter("GAME_OVER"));
+                new IntentFilter(GameService.ACTION_GAME_OVER));
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             startLocationUpdates();
