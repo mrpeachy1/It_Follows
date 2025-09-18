@@ -1,5 +1,5 @@
 public class MainMenuActivity {
-package com.example.itfollows;
+package com.itfollows.game;
 
 import android.content.Intent;
 import android.os.Bundle;

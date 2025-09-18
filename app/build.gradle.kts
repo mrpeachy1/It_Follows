@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.itfollows"
+    namespace = "com.itfollows.game"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.itfollows"
+        applicationId = "com.itfollows.game"
         minSdk = 26
         targetSdk = 35
         versionCode = 1

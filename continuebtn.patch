@@ -43,29 +43,29 @@ diff --git a/app/src/main/res/layout/activity_main_menu.xml b/app/src/main/res/l
  
      </androidx.constraintlayout.widget.ConstraintLayout>
  
-Index: app/src/main/java/com/example/itfollows/GameManager.java
+Index: app/src/main/java/com.itfollows.game/GameManager.java
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 <+>UTF-8
 ===================================================================
-diff --git a/app/src/main/java/com/example/itfollows/GameManager.java b/app/src/main/java/com/example/itfollows/GameManager.java
+diff --git a/app/src/main/java/com.itfollows.game/GameManager.java b/app/src/main/java/com.itfollows.game/GameManager.java
 new file mode 100644
 --- /dev/null	(date 1751817344483)
-+++ b/app/src/main/java/com/example/itfollows/GameManager.java	(date 1751817344483)
++++ b/app/src/main/java/com.itfollows.game/GameManager.java	(date 1751817344483)
 @@ -0,0 +1,5 @@
-+package com.example.itfollows;
++package com.itfollows.game;
 +
 +public class GameManager {
 +    public static boolean isNewGame = true;
 +}
-Index: app/src/main/java/com/example/itfollows/MainActivity.java
+Index: app/src/main/java/com.itfollows.game/MainActivity.java
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 <+>UTF-8
 ===================================================================
-diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
---- a/app/src/main/java/com/example/itfollows/MainActivity.java	
-+++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1751818864492)
+diff --git a/app/src/main/java/com.itfollows.game/MainActivity.java b/app/src/main/java/com.itfollows.game/MainActivity.java
+--- a/app/src/main/java/com.itfollows.game/MainActivity.java	
++++ b/app/src/main/java/com.itfollows.game/MainActivity.java	(date 1751818864492)
 @@ -19,7 +19,6 @@
  import android.app.NotificationManager;
  import android.app.PendingIntent;
@@ -263,16 +263,16 @@ diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src
  
      // Inside MainActivity.java
      @Override
-Index: app/src/main/java/com/example/itfollows/MainMenuActivity.java
+Index: app/src/main/java/com.itfollows.game/MainMenuActivity.java
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 <+>UTF-8
 ===================================================================
-diff --git a/app/src/main/java/com/example/itfollows/MainMenuActivity.java b/app/src/main/java/com/example/itfollows/MainMenuActivity.java
---- a/app/src/main/java/com/example/itfollows/MainMenuActivity.java	
-+++ b/app/src/main/java/com/example/itfollows/MainMenuActivity.java	(date 1751819221765)
+diff --git a/app/src/main/java/com.itfollows.game/MainMenuActivity.java b/app/src/main/java/com.itfollows.game/MainMenuActivity.java
+--- a/app/src/main/java/com.itfollows.game/MainMenuActivity.java	
++++ b/app/src/main/java/com.itfollows.game/MainMenuActivity.java	(date 1751819221765)
 @@ -1,22 +1,83 @@
- package com.example.itfollows;
+ package com.itfollows.game;
  
 +import android.app.ActivityManager;
 +import android.content.Context;
@@ -458,14 +458,14 @@ new file mode 100644
 --- /dev/null	(date 1751815901359)
 +++ b/snailposition.patch	(date 1751815901359)
 @@ -0,0 +1,286 @@
-+Index: app/src/main/java/com/example/itfollows/MainActivity.java
++Index: app/src/main/java/com.itfollows.game/MainActivity.java
 +IDEA additional info:
 +Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 +<+>UTF-8
 +===================================================================
-+diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
-+--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
-++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1751815735735)
++diff --git a/app/src/main/java/com.itfollows.game/MainActivity.java b/app/src/main/java/com.itfollows.game/MainActivity.java
++--- a/app/src/main/java/com.itfollows.game/MainActivity.java	
+++++ b/app/src/main/java/com.itfollows.game/MainActivity.java	(date 1751815735735)
 +@@ -71,6 +71,8 @@
 +     private static final long TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000L;
 +     private static final int REQUEST_CODE_HOLD = 444;
@@ -621,14 +621,14 @@ new file mode 100644
 +--- /dev/null	(date 1751814462428)
 ++++ b/camerapatch1.patch	(date 1751814462428)
 +@@ -0,0 +1,93 @@
-++Index: app/src/main/java/com/example/itfollows/MainActivity.java
+++Index: app/src/main/java/com.itfollows.game/MainActivity.java
 ++IDEA additional info:
 ++Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 ++<+>UTF-8
 ++===================================================================
-++diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
-++--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
-+++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1751814373510)
+++diff --git a/app/src/main/java/com.itfollows.game/MainActivity.java b/app/src/main/java/com.itfollows.game/MainActivity.java
+++--- a/app/src/main/java/com.itfollows.game/MainActivity.java	
++++++ b/app/src/main/java/com.itfollows.game/MainActivity.java	(date 1751814373510)
 ++@@ -71,6 +71,8 @@
 ++     private static final long TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000L;
 ++     private static final int REQUEST_CODE_HOLD = 444;
@@ -694,14 +694,14 @@ new file mode 100644
 ++--- /dev/null	(date 1751814080427)
 +++++ b/cameraupdate.patch	(date 1751814080427)
 ++@@ -0,0 +1,20 @@
-+++Index: app/src/main/java/com/example/itfollows/MainActivity.java
++++Index: app/src/main/java/com.itfollows.game/MainActivity.java
 +++IDEA additional info:
 +++Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 +++<+>UTF-8
 +++===================================================================
-+++diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
-+++--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
-++++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1751814020885)
++++diff --git a/app/src/main/java/com.itfollows.game/MainActivity.java b/app/src/main/java/com.itfollows.game/MainActivity.java
++++--- a/app/src/main/java/com.itfollows.game/MainActivity.java	
+++++++ b/app/src/main/java/com.itfollows.game/MainActivity.java	(date 1751814020885)
 +++@@ -252,6 +252,11 @@
 +++         Location.distanceBetween(lat1, lng1, lat2, lng2, results);
 +++         return results[0]; // distance in meters
@@ -724,14 +724,14 @@ new file mode 100644
 +--- /dev/null	(date 1751814080427)
 ++++ b/cameraupdate.patch	(date 1751814080427)
 +@@ -0,0 +1,20 @@
-++Index: app/src/main/java/com/example/itfollows/MainActivity.java
+++Index: app/src/main/java/com.itfollows.game/MainActivity.java
 ++IDEA additional info:
 ++Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 ++<+>UTF-8
 ++===================================================================
-++diff --git a/app/src/main/java/com/example/itfollows/MainActivity.java b/app/src/main/java/com/example/itfollows/MainActivity.java
-++--- a/app/src/main/java/com/example/itfollows/MainActivity.java	
-+++++ b/app/src/main/java/com/example/itfollows/MainActivity.java	(date 1751814020885)
+++diff --git a/app/src/main/java/com.itfollows.game/MainActivity.java b/app/src/main/java/com.itfollows.game/MainActivity.java
+++--- a/app/src/main/java/com.itfollows.game/MainActivity.java	
++++++ b/app/src/main/java/com.itfollows.game/MainActivity.java	(date 1751814020885)
 ++@@ -252,6 +252,11 @@
 ++         Location.distanceBetween(lat1, lng1, lat2, lng2, results);
 ++         return results[0]; // distance in meters
