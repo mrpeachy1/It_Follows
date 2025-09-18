@@ -82,6 +82,14 @@ public class GameStateRepo {
         return 0.6;
     }
 
+    public boolean isSnailProximityAlertShown() {
+        return sp.getBoolean("snailProximityAlertShown", false);
+    }
+
+    public void setSnailProximityAlertShown(boolean shown) {
+        sp.edit().putBoolean("snailProximityAlertShown", shown).apply();
+    }
+
     public void flush() {
         // no-op; using apply()
     }

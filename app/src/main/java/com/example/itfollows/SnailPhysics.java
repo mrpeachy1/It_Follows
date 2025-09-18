@@ -39,6 +39,7 @@ public class SnailPhysics {
         if (player == null) return;
 
         if (snail == null) {
+            repo.setSnailProximityAlertShown(false);
             double[] moved = GeoMath.moveToward(
                     player[0], player[1],
                     player[0], player[1] - 0.0005,
@@ -57,14 +58,21 @@ public class SnailPhysics {
         repo.setSnailLatLng(moved[0], moved[1], nowMs);
 
         double d = GeoMath.haversineMeters(moved[0], moved[1], player[0], player[1]);
+
+        if (d <= 25.0) {
+            if (!repo.isSnailProximityAlertShown() && shouldShowBackgroundAlert()) {
+                repo.setSnailProximityAlertShown(true);
+                showSnailCloseNotification();
+            }
+        } else if (d >= 30.0 && repo.isSnailProximityAlertShown()) {
+            repo.setSnailProximityAlertShown(false);
+        }
+
         if (d < repo.getGameOverRadiusMeters()) {
             LocalBroadcastManager.getInstance(app).sendBroadcast(
                     new Intent(GameService.ACTION_GAME_OVER));
 
-            PowerManager pm = (PowerManager) app.getSystemService(Context.POWER_SERVICE);
-            boolean screenOn = pm != null && pm.isInteractive();
-            boolean foreground = isAppInForeground();
-            if (!screenOn || !foreground) {
+            if (shouldShowBackgroundAlert()) {
                 showCaughtNotification();
             }
         }
@@ -83,15 +91,19 @@ public class SnailPhysics {
         return false;
     }
 
+    private boolean shouldShowBackgroundAlert() {
+        PowerManager pm = (PowerManager) app.getSystemService(Context.POWER_SERVICE);
+        boolean screenOn = pm != null && pm.isInteractive();
+        boolean foreground = isAppInForeground();
+        return !screenOn || !foreground;
+    }
+
     private void showCaughtNotification() {
         String channelId = "snail_caught_channel";
         NotificationManager nm = (NotificationManager) app.getSystemService(Context.NOTIFICATION_SERVICE);
         if (nm == null) return;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel ch = new NotificationChannel(channelId, "Snail Alerts", NotificationManager.IMPORTANCE_HIGH);
-            nm.createNotificationChannel(ch);
-        }
+        ensureSnailAlertChannel(nm, channelId);
 
         Intent intent = new Intent(app, GameActivity.class);
         PendingIntent pi = PendingIntent.getActivity(app, 0, intent, PendingIntent.FLAG_IMMUTABLE);
@@ -105,5 +117,36 @@ public class SnailPhysics {
                 .build();
 
         nm.notify(2001, notification);
+    }
+
+    private void showSnailCloseNotification() {
+        String channelId = "snail_caught_channel";
+        NotificationManager nm = (NotificationManager) app.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm == null) return;
+
+        ensureSnailAlertChannel(nm, channelId);
+
+        Intent intent = new Intent(app, GameActivity.class);
+        PendingIntent pi = PendingIntent.getActivity(app, 1, intent, PendingIntent.FLAG_IMMUTABLE);
+
+        Notification notification = new NotificationCompat.Builder(app, channelId)
+                .setSmallIcon(R.drawable.snail)
+                .setContentTitle("The snail is nearby")
+                .setContentText("It's within 25 meters. Get moving!")
+                .setAutoCancel(true)
+                .setContentIntent(pi)
+                .build();
+
+        nm.notify(2002, notification);
+    }
+
+    private void ensureSnailAlertChannel(NotificationManager nm, String channelId) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel existing = nm.getNotificationChannel(channelId);
+            if (existing == null) {
+                NotificationChannel ch = new NotificationChannel(channelId, "Snail Alerts", NotificationManager.IMPORTANCE_HIGH);
+                nm.createNotificationChannel(ch);
+            }
+        }
     }
 }
