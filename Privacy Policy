@@ -1,0 +1,48 @@
+Introduction
+It Follows: Snail Edition is a GPS-based horror game for Android. In the game, a slow but relentless snail chases you in real-world space. This policy explains what information the app collects, how it’s used, and your choices about it.
+
+Information We Collect
+Location data
+The app uses your phone’s location to track your movement during the game.
+It runs in the background so the snail can keep moving even if you minimize the app.
+The app may continue tracking after your phone restarts until you stop the game or turn off location permissions.
+Notifications are sent when the snail is nearby or catches you.
+
+Game progress and settings
+The app saves your game progress (coins, items, power-ups, and shop activity) on your device so you don’t lose progress between sessions.
+It also saves settings like volume, snail speed, starting distance, and chosen graphics.
+If you pause or quit, the game saves your position so you can continue later.
+
+Advertising and diagnostics
+The app may show ads, including rewarded ads that give you in-game bonuses if you watch them.
+Before showing ads, it asks for your consent through Google’s consent system.
+The app also uses Google services (Maps, Ads, Location) and Firebase Crashlytics to track errors, which means Google may collect device and diagnostic information.
+
+How We Use the Information
+Location data makes the snail move toward you, updates the map, and triggers warnings when it’s close.
+Game progress and settings let you continue where you left off and keep your chosen preferences.
+Advertising data makes sure ads only show if you’ve agreed, and diagnostic data helps fix bugs and crashes.
+
+Third-Party Services
+The app uses Google services (Maps, Location, Ads, Crashlytics). These services may collect information under Google’s own privacy policies.
+Data Storage and Retention
+All game data is stored locally on your device.
+You can clear your game progress by starting a new game, quitting, or uninstalling the app.
+Location tracking stops when you quit the game, stop the service, or turn off location permissions.
+Your Choices and Controls
+You can turn off location or notification permissions in your phone’s settings.
+You can reset your game progress in the app at any time.
+You can revisit your ad consent choices through the Google ad settings.
+
+Security
+Your saved data is private to the app and can’t be accessed by other apps. Location tracking always runs with a visible notification so you know when it’s active.
+
+Children’s Privacy
+This game is meant for players 13 and older. If you believe a child under 13 has used the app and provided data, contact us and we’ll delete the information.
+
+Changes to This Policy
+We may update this policy from time to time. If we do, the updated version will show a new effective date.
+
+
+Contact Us
+For any questions about privacy, contact the developer (listed as mrpeachy1) through the app’s support channel or repository at mrpeachyproductions@gmail.com.
