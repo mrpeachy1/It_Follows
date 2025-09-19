@@ -52,6 +52,23 @@
         android:src="@drawable/ic_zoom_snail"
         map:tint="#FFFFFF" />
 
+    <ImageButton
+        android:id="@+id/centerPlayerButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/zoomFitButton"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="17dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="14dp"
+        android:layout_marginBottom="17dp"
+        android:background="@drawable/zoom_button_background"
+        android:backgroundTint="#AA000000"
+        android:contentDescription="Center map on player"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_my_location"
+        map:tint="#FFFFFF" />
+
     <Button
         android:id="@+id/inventoryButton"
         android:layout_width="wrap_content"
