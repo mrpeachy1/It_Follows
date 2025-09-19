@@ -52,16 +52,16 @@
     <!-- Shop Content Scrollable Area -->
     <ScrollView
         android:id="@+id/scrollView3"
-        android:layout_width="match_parent"
+        android:layout_width="252dp"
         android:layout_height="wrap_content"
         android:layout_below="@id/coinBalanceText"
         android:layout_alignStart="@id/shopBackgroundImage"
         android:layout_alignEnd="@id/shopBackgroundImage"
         android:layout_alignBottom="@id/shopBackgroundImage"
-        android:layout_marginStart="48dp"
-        android:layout_marginEnd="48dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="48dp"
+        android:layout_marginStart="71dp"
+        android:layout_marginTop="25dp"
+        android:layout_marginEnd="71dp"
+        android:layout_marginBottom="44dp"
         android:clipToPadding="false"
         android:fillViewport="true"
         android:paddingBottom="16dp">
