@@ -41,7 +41,7 @@
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/shopBackgroundImage"
         android:layout_alignEnd="@+id/shopBackgroundImage"
-        android:layout_marginTop="178dp"
+        android:layout_marginTop="190dp"
         android:layout_marginEnd="156dp"
         android:text="1,000,000"
         android:textColor="#F2E681"
@@ -65,10 +65,12 @@
         android:id="@+id/shopContentLayout"
         android:layout_width="wrap_content"
         android:layout_height="430dp"
+        android:layout_alignTop="@+id/shopBackgroundImage"
         android:layout_alignEnd="@+id/shopBackgroundImage"
         android:layout_alignParentBottom="true"
-        android:layout_marginEnd="68dp"
-        android:layout_marginBottom="31dp"
+        android:layout_marginTop="205dp"
+        android:layout_marginEnd="70dp"
+        android:layout_marginBottom="50dp"
         android:orientation="vertical">
 
         <!-- SHOP BUTTONS -->
@@ -98,8 +100,8 @@
             android:layout_marginTop="5dp"
             android:background="@drawable/button_translucent_bg"
             android:text="🛡 Buy Shell Shield (10,000)"
-            android:textSize="12sp"
-            android:textColor="#FFFFFF" />
+            android:textColor="#FFFFFF"
+            android:textSize="12sp" />
 
         <Button
             android:id="@+id/buyWhistleBtn"
@@ -118,8 +120,8 @@
             android:layout_marginTop="5dp"
             android:background="@drawable/button_translucent_bg"
             android:text="🔀 Shell Swap (15,000)"
-            android:textSize="12sp"
-            android:textColor="#FFFFFF" />
+            android:textColor="#FFFFFF"
+            android:textSize="12sp" />
 
         <!-- Snail Repel Section -->
 
