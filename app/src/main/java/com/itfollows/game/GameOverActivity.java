@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,6 +38,8 @@ public class GameOverActivity extends AppCompatActivity {
     // Use test Ad Unit ID for development. Replace with your real ID for production.
     private final String AD_UNIT_ID = "ca-app-pub-3940256099942544/5224354917";
     private boolean adLoading = false;
+    private boolean loadingForImmediateUse = true;
+    private boolean hasTriggeredNextPreload = false;
 
 
     @Override
@@ -69,10 +70,19 @@ public class GameOverActivity extends AppCompatActivity {
         distanceTraveledText.setText(String.format("Snail Traveled: %.1f m", distanceTraveled));
         }
 
-        // Initialize Mobile Ads SDK
+        // Try to use a preloaded ad from AdManager first.
+        RewardedAd preloadedAd = AdManager.getInstance().retrievePreloadedRewardedAd();
+        if (preloadedAd != null) {
+            Log.d(TAG, "Using preloaded rewarded ad from AdManager.");
+            applyLoadedAd(preloadedAd);
+        }
+
+        // Initialize Mobile Ads SDK. Only request a new ad if none is currently ready.
         MobileAds.initialize(this, initializationStatus -> {
             Log.d(TAG, "Mobile Ads SDK Initialized.");
-            loadRewardedAd(); // Load an ad when the activity starts
+            if (mRewardedAd == null && !adLoading) {
+                loadRewardedAd(true);
+            }
         });
 
 
@@ -105,76 +115,125 @@ public class GameOverActivity extends AppCompatActivity {
                 Log.d(TAG, "The rewarded ad wasn't ready yet.");
                 Toast.makeText(GameOverActivity.this, "Ad not ready. Try again shortly.", Toast.LENGTH_SHORT).show();
                 // Optionally try to load another ad here or disable the button temporarily
-                if (!adLoading) loadRewardedAd();
+                if (!adLoading) loadRewardedAd(true);
             }
         });
         reviveButton.setEnabled(false); // Initially disable until ad is loaded
     }
 
     private void loadRewardedAd() {
-        if (mRewardedAd == null && !adLoading) {
-            adLoading = true;
-            AdRequest adRequest = new AdRequest.Builder().build();
-            RewardedAd.load(this, AD_UNIT_ID,
-                    adRequest, new RewardedAdLoadCallback() {
-                        @Override
-                        public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-                            // Handle the error.
-                            Log.d(TAG, loadAdError.toString());
-                            mRewardedAd = null;
-                            adLoading = false;
+        loadRewardedAd(true);
+    }
+
+    private void loadRewardedAd(boolean forImmediateUse) {
+        if (adLoading) {
+            if (!forImmediateUse) {
+                loadingForImmediateUse = false;
+            }
+            return;
+        }
+        adLoading = true;
+        loadingForImmediateUse = forImmediateUse;
+        AdRequest adRequest = new AdRequest.Builder().build();
+        RewardedAd.load(forImmediateUse ? GameOverActivity.this : getApplicationContext(), AD_UNIT_ID,
+                adRequest, new RewardedAdLoadCallback() {
+                    @Override
+                    public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                        // Handle the error.
+                        Log.d(TAG, loadAdError.toString());
+                        mRewardedAd = null;
+                        adLoading = false;
+                        hasTriggeredNextPreload = false;
+                        if (loadingForImmediateUse) {
                             reviveButton.setEnabled(false); // Keep disabled or provide feedback
                             Toast.makeText(GameOverActivity.this, "Revive ad failed to load.", Toast.LENGTH_SHORT).show();
                         }
+                        AdManager.getInstance().setPreloadedRewardedAd(null);
+                    }
 
-                        @Override
-                        public void onAdLoaded(@NonNull RewardedAd rewardedAd) {
-                            mRewardedAd = rewardedAd;
-                            adLoading = false;
-                            Log.d(TAG, "Ad was loaded.");
-                            reviveButton.setEnabled(true); // Enable the button now
-
-                            mRewardedAd.setFullScreenContentCallback(new FullScreenContentCallback() {
-                                @Override
-                                public void onAdClicked() {
-                                    // Called when a click is recorded for an ad.
-                                    Log.d(TAG, "Ad was clicked.");
-                                }
-
-                                @Override
-                                public void onAdDismissedFullScreenContent() {
-                                    // Called when ad is dismissed.
-                                    // Set the ad reference to null so you don't show the ad a second time.
-                                    Log.d(TAG, "Ad dismissed fullscreen content.");
-                                    mRewardedAd = null;
-                                    reviveButton.setEnabled(false); // Ad consumed
-                                    // Load the next ad:
-                                    loadRewardedAd();
-                                }
-
-                                @Override
-                                public void onAdFailedToShowFullScreenContent(AdError adError) {
-                                    // Called when ad fails to show.
-                                    Log.e(TAG, "Ad failed to show fullscreen content.");
-                                    mRewardedAd = null;
-                                    reviveButton.setEnabled(false);
-                                }
-
-                                @Override
-                                public void onAdImpression() {
-                                    // Called when an impression is recorded for an ad.
-                                    Log.d(TAG, "Ad recorded an impression.");
-                                }
-
-                                @Override
-                                public void onAdShowedFullScreenContent() {
-                                    // Called when ad is shown.
-                                    Log.d(TAG, "Ad showed fullscreen content.");
-                                }
-                            });
+                    @Override
+                    public void onAdLoaded(@NonNull RewardedAd rewardedAd) {
+                        adLoading = false;
+                        Log.d(TAG, "Ad was loaded.");
+                        AdManager.getInstance().setPreloadedRewardedAd(rewardedAd);
+                        if (loadingForImmediateUse) {
+                            applyLoadedAd(rewardedAd);
                         }
-                    });
+                    }
+                });
+    }
+
+    private void applyLoadedAd(RewardedAd rewardedAd) {
+        adLoading = false;
+        loadingForImmediateUse = true;
+        mRewardedAd = rewardedAd;
+        reviveButton.setEnabled(true); // Enable the button now
+        hasTriggeredNextPreload = false;
+
+        rewardedAd.setFullScreenContentCallback(new FullScreenContentCallback() {
+            @Override
+            public void onAdClicked() {
+                // Called when a click is recorded for an ad.
+                Log.d(TAG, "Ad was clicked.");
+            }
+
+            @Override
+            public void onAdDismissedFullScreenContent() {
+                // Called when ad is dismissed.
+                // Set the ad reference to null so you don't show the ad a second time.
+                Log.d(TAG, "Ad dismissed fullscreen content.");
+                mRewardedAd = null;
+                reviveButton.setEnabled(false); // Ad consumed
+            }
+
+            @Override
+            public void onAdFailedToShowFullScreenContent(AdError adError) {
+                // Called when ad fails to show.
+                Log.e(TAG, "Ad failed to show fullscreen content.");
+                mRewardedAd = null;
+                reviveButton.setEnabled(false);
+                consumePreloadedAdAndPreloadNext(true);
+            }
+
+            @Override
+            public void onAdImpression() {
+                // Called when an impression is recorded for an ad.
+                Log.d(TAG, "Ad recorded an impression.");
+            }
+
+            @Override
+            public void onAdShowedFullScreenContent() {
+                // Called when ad is shown.
+                Log.d(TAG, "Ad showed fullscreen content.");
+                consumePreloadedAdAndPreloadNext(false);
+            }
+        });
+    }
+
+    private void consumePreloadedAdAndPreloadNext(boolean forImmediateUse) {
+        if (hasTriggeredNextPreload) {
+            if (adLoading) {
+                loadingForImmediateUse = forImmediateUse;
+            }
+            return;
         }
+        hasTriggeredNextPreload = true;
+        AdManager.getInstance().consumePreloadedRewardedAd();
+        mRewardedAd = null;
+        reviveButton.setEnabled(false);
+        if (adLoading) {
+            loadingForImmediateUse = forImmediateUse;
+        } else {
+            loadRewardedAd(forImmediateUse);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (!hasTriggeredNextPreload) {
+            consumePreloadedAdAndPreloadNext(false);
+        }
+        super.onDestroy();
     }
 
     @Override
