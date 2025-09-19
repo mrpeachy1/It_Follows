@@ -39,10 +39,12 @@
         android:id="@+id/coinBalanceText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/shopBackgroundImage"
-        android:layout_alignEnd="@+id/shopBackgroundImage"
+        android:layout_alignTop="@id/shopBackgroundImage"
+        android:layout_centerHorizontal="true"
         android:layout_marginTop="190dp"
-        android:layout_marginEnd="156dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:gravity="center"
         android:text="1,000,000"
         android:textColor="#F2E681"
         android:textSize="25sp" />
@@ -52,136 +54,138 @@
         android:id="@+id/scrollView3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/coinBalanceText"
-        android:layout_alignStart="@+id/shopBackgroundImage"
-        android:layout_marginStart="0dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="8dp"
-        android:fillViewport="true">
-
-    </ScrollView>
-
-    <LinearLayout
-        android:id="@+id/shopContentLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="430dp"
-        android:layout_alignTop="@+id/shopBackgroundImage"
-        android:layout_alignEnd="@+id/shopBackgroundImage"
-        android:layout_alignParentBottom="true"
-        android:layout_marginTop="205dp"
-        android:layout_marginEnd="70dp"
-        android:layout_marginBottom="50dp"
-        android:orientation="vertical">
-
-        <!-- SHOP BUTTONS -->
-        <Button
-            android:id="@+id/buySaltBombBtn"
-            android:layout_width="252dp"
-            android:layout_height="35dp"
-            android:background="@drawable/button_translucent_bg"
-            android:text="🧂 Buy Salt Bomb (5,000)"
-            android:textColor="#FFFFFF"
-            android:textSize="12sp" />
-
-        <Button
-            android:id="@+id/buyDecoyBtn"
-            android:layout_width="252dp"
-            android:layout_height="35dp"
-            android:layout_marginTop="5dp"
-            android:background="@drawable/button_translucent_bg"
-            android:text="🐚 Buy Decoy Shell (7,500)"
-            android:textColor="#FFFFFF"
-            android:textSize="12sp" />
-
-        <Button
-            android:id="@+id/buyShieldBtn"
-            android:layout_width="252dp"
-            android:layout_height="35dp"
-            android:layout_marginTop="5dp"
-            android:background="@drawable/button_translucent_bg"
-            android:text="🛡 Buy Shell Shield (10,000)"
-            android:textColor="#FFFFFF"
-            android:textSize="12sp" />
-
-        <Button
-            android:id="@+id/buyWhistleBtn"
-            android:layout_width="252dp"
-            android:layout_height="35dp"
-            android:layout_marginTop="5dp"
-            android:background="@drawable/button_translucent_bg"
-            android:text="📯 Buy Snail Whistle (3,000)"
-            android:textColor="#FFFFFF"
-            android:textSize="12sp" />
-
-        <Button
-            android:id="@+id/buyShellSwapBtn"
-            android:layout_width="252dp"
-            android:layout_height="35dp"
-            android:layout_marginTop="5dp"
-            android:background="@drawable/button_translucent_bg"
-            android:text="🔀 Shell Swap (15,000)"
-            android:textColor="#FFFFFF"
-            android:textSize="12sp" />
-
-        <!-- Snail Repel Section -->
-
-        <Button
-            android:id="@+id/buyRepelBtn"
-            android:layout_width="252dp"
-            android:layout_height="35dp"
-            android:layout_marginTop="6dp"
-            android:background="@drawable/button_translucent_bg"
-            android:text="Buy Snail Repel"
-            android:textColor="#FFFFFF" />
-
-        <TextView
-            android:id="@+id/repelCostText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="$60,000"
-            android:textColor="#FFFF66"
-            android:textSize="16sp" />
+        android:layout_below="@id/coinBalanceText"
+        android:layout_alignStart="@id/shopBackgroundImage"
+        android:layout_alignEnd="@id/shopBackgroundImage"
+        android:layout_alignBottom="@id/shopBackgroundImage"
+        android:layout_marginStart="48dp"
+        android:layout_marginEnd="48dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="48dp"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:paddingBottom="16dp">
 
         <LinearLayout
-            android:id="@+id/repelControlRow"
-            android:layout_width="wrap_content"
+            android:id="@+id/shopContentLayout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <!-- SHOP BUTTONS -->
+            <Button
+                android:id="@+id/buySaltBombBtn"
+                android:layout_width="match_parent"
+                android:layout_height="35dp"
+                android:background="@drawable/button_translucent_bg"
+                android:text="🧂 Buy Salt Bomb (5,000)"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp" />
 
             <Button
-                android:id="@+id/decreaseRepelBtn"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:text="-" />
+                android:id="@+id/buyDecoyBtn"
+                android:layout_width="match_parent"
+                android:layout_height="35dp"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/button_translucent_bg"
+                android:text="🐚 Buy Decoy Shell (7,500)"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/buyShieldBtn"
+                android:layout_width="match_parent"
+                android:layout_height="35dp"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/button_translucent_bg"
+                android:text="🛡 Buy Shell Shield (10,000)"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/buyWhistleBtn"
+                android:layout_width="match_parent"
+                android:layout_height="35dp"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/button_translucent_bg"
+                android:text="📯 Buy Snail Whistle (3,000)"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/buyShellSwapBtn"
+                android:layout_width="match_parent"
+                android:layout_height="35dp"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/button_translucent_bg"
+                android:text="🔀 Shell Swap (15,000)"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp" />
+
+            <!-- Snail Repel Section -->
+
+            <Button
+                android:id="@+id/buyRepelBtn"
+                android:layout_width="match_parent"
+                android:layout_height="35dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/button_translucent_bg"
+                android:text="Buy Snail Repel"
+                android:textColor="#FFFFFF" />
 
             <TextView
-                android:id="@+id/repelDistanceText"
+                android:id="@+id/repelCostText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="12dp"
-                android:text="100m"
-                android:textColor="#FFFFFF"
+                android:layout_marginTop="4dp"
+                android:text="$60,000"
+                android:textColor="#FFFF66"
                 android:textSize="16sp" />
 
-            <Button
-                android:id="@+id/increaseRepelBtn"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:text="+" />
+            <LinearLayout
+                android:id="@+id/repelControlRow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/decreaseRepelBtn"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:text="-" />
+
+                <TextView
+                    android:id="@+id/repelDistanceText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="12dp"
+                    android:text="100m"
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp" />
+
+                <Button
+                    android:id="@+id/increaseRepelBtn"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:text="+" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/repelCooldownText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="4dp"
+                android:textColor="#FF8888"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/repelCooldownText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textColor="#FF8888"
-            android:textSize="14sp"
-            android:visibility="gone" />
-
-    </LinearLayout>
+    </ScrollView>
 
 </RelativeLayout>
