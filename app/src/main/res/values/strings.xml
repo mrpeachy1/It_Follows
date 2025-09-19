@@ -2,8 +2,7 @@
     <string name="app_name">It Slithers</string>
     <string name="title_activity_maps">MapsActivity</string>
 
-    <string name="how_to_play_text">
-"Run in real life to stay ahead of the snail.\n\n
+    <string name="how_to_play_text">"Run in real life to stay ahead of the snail.\n\n
 The snail is always coming — slowly but surely.\n
 It follows your GPS location and never stops.\n\n
 If it catches you — you die.\n\n
@@ -15,10 +14,16 @@ Freezes the snail in place for 15 seconds.\n\n
 Drops a fake player marker to lure the snail away.\n\n
 🛡 Shell Shield\n
 Blocks one collision — the snail passes through you.\n\n
+📯 Snail Whistle\n
+Blow the horn to lure the snail to a random spot up to 2 km away.\n\n
+🔀 Snail Swap\n
+Instantly trade places with the snail — a risky escape move.\n\n
+🧲 Snail Repel\n
+Spend coins to push the snail back 50-200 meters, then wait for it to recharge.\n\n
 🛍️ Power-ups can be purchased in the shop\n
 (look for the snail coin icon on your map).\n\n
 But beware... the snail evolves.\n\n
-Every few minutes, it may unleash a new behavior:\n\n
+Every few minutes, it may unleash a new behavior:\n
 🫥 Vanish\n
 The snail disappears from the map temporarily.\n\n
 🎭 Fake Snail\n
@@ -26,11 +31,8 @@ It spawns a false marker to mislead you.\n\n
 ⚡ Teleport\n
 It jumps forward a short distance without warning.\n\n
 🐌 Snail Beacon Event\n
-Random beacons appear on the map during the day. Reach one before the snail
-to push it back 50 meters. If the snail gets there first, its speed doubles
-for the next 24 hours.\n\n
-
+Random beacons appear on the map during the day. Reach one before the snail to push it back 50 meters.\n
+If the snail gets there first, its speed doubles for the next 24 hours.\n\n
 It’s slow…\n
-…but it never, ever stops."
-</string>
+…but it never, ever stops."</string>
 </resources>
