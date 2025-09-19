@@ -51,6 +51,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -612,6 +613,20 @@ public class GameActivity extends AppCompatActivity implements OnMapReadyCallbac
             // Re-enable following the player and zoom out enough so the snail is visible
             isFollowingPlayer = true;
             zoomOutToShowSnailButKeepPlayerCentered();
+        });
+
+        ImageButton centerPlayerButton = findViewById(R.id.centerPlayerButton);
+        centerPlayerButton.setOnClickListener(v -> {
+            if (mMap == null || currentPlayerLocation == null) {
+                Toast.makeText(this, "Waiting for player location...", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            isFollowingPlayer = true;
+            CameraPosition cameraPosition = mMap.getCameraPosition();
+            float currentZoom = cameraPosition != null ? cameraPosition.zoom : 18f;
+            CameraUpdate update = CameraUpdateFactory.newLatLngZoom(currentPlayerLocation, currentZoom);
+            mMap.animateCamera(update);
         });
 
 
