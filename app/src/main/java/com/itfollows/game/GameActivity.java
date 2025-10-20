@@ -152,6 +152,7 @@ public class GameActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private static final String PREFS_GAME_STATE = "SnailGameState";
     private static final String PREFS_SNAIL_CURRENCY = "SnailCurrency";
+    private static final int DEFAULT_SNAIL_COIN_BALANCE = 1_000_000;
     private static final String KEY_SNAIL_LAT_BEFORE_PAUSE = "snailLatBeforePause";
     private static final String KEY_SNAIL_LNG_BEFORE_PAUSE = "snailLngBeforePause";
     private static final String KEY_PLAYER_LAT_BEFORE_PAUSE = "playerLatBeforePause";
@@ -409,7 +410,7 @@ public class GameActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private int getSnailCoinBalance() {
         SharedPreferences prefs = getSharedPreferences(PREFS_SNAIL_CURRENCY, MODE_PRIVATE);
-        return prefs.getInt("snailCoins", 1_000_000); // default to 1 million only once
+        return prefs.getInt("snailCoins", DEFAULT_SNAIL_COIN_BALANCE); // default to 1 million only once
     }
 
     private TextView coinBalanceText;
@@ -432,6 +433,16 @@ public class GameActivity extends AppCompatActivity implements OnMapReadyCallbac
         SharedPreferences.Editor editor = getSharedPreferences(PREFS_SNAIL_CURRENCY, MODE_PRIVATE).edit();
         editor.putInt("snailCoins", snailCoinBalance);
         editor.apply();
+        updateCoinDisplay();
+    }
+
+    private void resetSnailCoinBalance() {
+        resetSnailCoinBalance(getSharedPreferences(PREFS_SNAIL_CURRENCY, MODE_PRIVATE));
+    }
+
+    private void resetSnailCoinBalance(SharedPreferences currencyPrefs) {
+        snailCoinBalance = DEFAULT_SNAIL_COIN_BALANCE;
+        currencyPrefs.edit().putInt("snailCoins", snailCoinBalance).apply();
         updateCoinDisplay();
     }
 
@@ -478,11 +489,13 @@ public class GameActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         SharedPreferences currencyPrefs = getSharedPreferences(PREFS_SNAIL_CURRENCY, MODE_PRIVATE);
 
-        if (!currencyPrefs.contains("snailCoins")) {
-            currencyPrefs.edit().putInt("snailCoins", 1_000_000).apply();
+        if (isNewGame && !hasSavedGame) {
+            resetSnailCoinBalance(currencyPrefs);
+        } else if (!currencyPrefs.contains("snailCoins")) {
+            currencyPrefs.edit().putInt("snailCoins", DEFAULT_SNAIL_COIN_BALANCE).apply();
         }
 
-        snailCoinBalance = currencyPrefs.getInt("snailCoins", 1_000_000);
+        snailCoinBalance = currencyPrefs.getInt("snailCoins", DEFAULT_SNAIL_COIN_BALANCE);
 
         updateCoinDisplay();
 
@@ -2443,6 +2456,8 @@ public class GameActivity extends AppCompatActivity implements OnMapReadyCallbac
         snailHandler.removeCallbacksAndMessages(null); // Stop any active chase
 
         Log.d("GameOver", message + " Time: " + timeTakenMillis + "ms, Snail Distance: " + distanceTraveledMeters + "m");
+
+        resetSnailCoinBalance();
 
         Intent gameOverIntent = new Intent(GameActivity.this, GameOverActivity.class);
         gameOverIntent.putExtra(GameOverActivity.EXTRA_TIME_TAKEN, timeTakenMillis);
