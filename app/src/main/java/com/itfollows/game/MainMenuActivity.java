@@ -6,13 +6,13 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainMenuActivity extends AppCompatActivity {
+    private static final int REQUEST_SETTINGS_BEFORE_GAME = 1001;
     private boolean isGameServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
@@ -28,16 +28,6 @@ public class MainMenuActivity extends AppCompatActivity {
         Log.d("MainMenuActivity", "GameService stopped (reset for new game).");
     }
 
-    public void onStartNewGameClick(View view) {
-        // Step 1: Clear the power-up inventory
-        resetPowerUps();
-        Log.d("MainMenuActivity", "Power-ups reset for new game.");
-
-        // Step 2: Start the game activity
-        Intent intent = new Intent(this, GameActivity.class);
-        intent.putExtra("isNewGame", true);
-        startActivity(intent);
-    }
     private void resetPowerUps() {
         SharedPreferences powerUpPrefs = getSharedPreferences("PowerUpInventory", MODE_PRIVATE);
         SharedPreferences.Editor powerUpEditor = powerUpPrefs.edit();
@@ -73,11 +63,8 @@ public class MainMenuActivity extends AppCompatActivity {
         // ✅ Start New Game
         Button newGameButton = findViewById(R.id.buttonStart);
         newGameButton.setOnClickListener(v -> {
-            stopGameServiceAndReset(); // Stop current game
-            GameService.clearSavedState(this); // Optional: clear saved state
-            Intent intent = new Intent(this, GameActivity.class);
-            intent.putExtra("isNewGame", true);
-            startActivity(intent);
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivityForResult(intent, REQUEST_SETTINGS_BEFORE_GAME);
         });
 
         // ✅ Resume Game
@@ -92,11 +79,24 @@ public class MainMenuActivity extends AppCompatActivity {
         findViewById(R.id.buttonHowToPlay).setOnClickListener(v ->
                 startActivity(new Intent(this, HowToPlayActivity.class)));
 
-        findViewById(R.id.buttonSettings).setOnClickListener(v ->
-                startActivity(new Intent(this, SettingsActivity.class)));
-
         findViewById(R.id.buttonCredits).setOnClickListener(v ->
                 startActivity(new Intent(this, CreditsActivity.class)));
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_SETTINGS_BEFORE_GAME && resultCode == RESULT_OK) {
+            stopGameServiceAndReset();
+            GameService.clearSavedState(this);
+            resetPowerUps();
+            Log.d("MainMenuActivity", "Power-ups reset for new game.");
+
+            Intent intent = new Intent(this, GameActivity.class);
+            intent.putExtra("isNewGame", true);
+            startActivity(intent);
+        }
     }
 
 

@@ -136,6 +136,7 @@ public class SettingsActivity extends AppCompatActivity {
             saveSettings(); // saves volume, dropdowns, and currentSelectedSpriteIdentifier
             MusicManager.setVolume(this);
             Toast.makeText(this, "Settings applied", Toast.LENGTH_SHORT).show();
+            setResult(RESULT_OK);
             finish(); // Go back to previous screen
         });
     }
