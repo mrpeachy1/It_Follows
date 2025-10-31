@@ -29,7 +29,6 @@
         android:theme="@style/Theme.ItFollows"
         android:foregroundServiceType="location"
         tools:targetApi="31">
-
         <service
             android:name=".GameService"
             android:exported="false"
