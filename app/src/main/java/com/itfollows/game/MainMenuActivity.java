@@ -25,7 +25,6 @@ public class MainMenuActivity extends AppCompatActivity {
     private ImageButton closeAchievementsBtn;
     private LinearLayout achievementsList;
     private TextView achievementsBadge;
-    private Button backToMenuBtn;
     private boolean isGameServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
@@ -66,7 +65,6 @@ public class MainMenuActivity extends AppCompatActivity {
         closeAchievementsBtn = findViewById(R.id.closeAchievementsBtn);
         achievementsList = findViewById(R.id.achievementsList);
         achievementsBadge = findViewById(R.id.achievementsBadge);
-        backToMenuBtn = findViewById(R.id.backToMenuBtn);
 
         // ✅ Show Continue if GameService is running
         if (isGameServiceRunning()) {
@@ -110,10 +108,6 @@ public class MainMenuActivity extends AppCompatActivity {
 
         if (closeAchievementsBtn != null && achievementsPanel != null) {
             closeAchievementsBtn.setOnClickListener(v -> achievementsPanel.setVisibility(View.GONE));
-        }
-
-        if (backToMenuBtn != null && achievementsPanel != null) {
-            backToMenuBtn.setOnClickListener(v -> achievementsPanel.setVisibility(View.GONE));
         }
 
         updateAchievementsBadge();
