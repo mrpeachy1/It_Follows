@@ -67,6 +67,8 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import java.util.concurrent.TimeUnit;
 import java.util.Locale;
 
+import com.itfollows.game.ui.achievements.AchievementsManager;
+
 public class GameActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final String KEY_TODAYS_GAME = "TodaysGame";
@@ -138,6 +140,7 @@ public class GameActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private float distanceSinceLastReward = 0f;
+    private float achievementsDistanceBuffer = 0f;
     private static final float REWARD_DISTANCE_THRESHOLD_METERS = 5000f; // Adjust as needed
     private LatLng lastRewardCheckLocation = null;
     private long gameStartTimeElapsedMillis; // Using SystemClock.elapsedRealtime()
@@ -768,6 +771,7 @@ public class GameActivity extends AppCompatActivity implements OnMapReadyCallbac
                 powerUpEditor.apply();
                 activateSaltBomb();
                 updatePowerUpUI();
+                AchievementsManager.addProgress(GameActivity.this, "salt_specialist", 1);
                 Log.d("InventoryCheck", "SaltBomb: " + powerUpPrefs.getInt("saltBomb", -1));
                 Log.d("InventoryCheck", "Decoy: " + powerUpPrefs.getInt("decoyShell", -1));
                 Log.d("InventoryCheck", "Shield: " + powerUpPrefs.getInt("shellShield", -1));
@@ -1988,6 +1992,12 @@ public class GameActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 result);
                         float distance = result[0];
                         distanceSinceLastReward += distance;
+                        achievementsDistanceBuffer += distance;
+                        int metersDelta = (int) achievementsDistanceBuffer;
+                        if (metersDelta > 0) {
+                            AchievementsManager.addProgress(GameActivity.this, "endurance_master", metersDelta);
+                            achievementsDistanceBuffer -= metersDelta;
+                        }
 
                     }
                     lastRewardCheckLocation = currentPlayerLocation;
@@ -2078,6 +2088,7 @@ public class GameActivity extends AppCompatActivity implements OnMapReadyCallbac
         hasCenteredOnce = false;
         lastRewardCheckLocation = null;
         distanceSinceLastReward = 0f;
+        achievementsDistanceBuffer = 0f;
 
         snailHandler.removeCallbacksAndMessages(null);
 

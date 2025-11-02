@@ -1,0 +1,43 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/achievementsPanel"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/panel_background"
+    android:visibility="gone"
+    android:padding="24dp">
+
+    <ImageButton
+        android:id="@+id/closeAchievementsBtn"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentEnd="true"
+        android:background="@android:color/transparent"
+        android:src="@drawable/ic_close"
+        android:contentDescription="Close Achievements" />
+
+    <TextView
+        android:id="@+id/achievementsTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ACHIEVEMENTS"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="#FFF8D6"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="12dp" />
+
+    <ScrollView
+        android:id="@+id/achievementsScroll"
+        android:layout_below="@id/achievementsTitle"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="12dp">
+
+        <LinearLayout
+            android:id="@+id/achievementsList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp"/>
+    </ScrollView>
+</RelativeLayout>
