@@ -1,43 +1,88 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/achievementsPanel"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/panel_background"
     android:visibility="gone"
-    android:padding="24dp">
+    tools:visibility="visible">
 
-    <ImageButton
-        android:id="@+id/closeAchievementsBtn"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_alignParentEnd="true"
-        android:background="@android:color/transparent"
-        android:src="@drawable/ic_close"
-        android:contentDescription="Close Achievements" />
-
-    <TextView
-        android:id="@+id/achievementsTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="ACHIEVEMENTS"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:textColor="#FFF8D6"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="12dp" />
-
-    <ScrollView
-        android:id="@+id/achievementsScroll"
-        android:layout_below="@id/achievementsTitle"
+    <!-- Background image (like HOW TO PLAY) -->
+    <ImageView
+        android:id="@+id/achievementsBackground"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="12dp">
+        android:scaleType="centerCrop"
+        android:src="@drawable/howtoplay"
+        android:contentDescription="@null" />
 
+    <!-- Optional glow overlay used on other panels -->
+    <ImageView
+        android:id="@+id/panelGlow"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/panelglow"
+        android:alpha="0.85"
+        android:contentDescription="@null" />
+
+    <!-- Foreground content -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="32dp">
+
+        <!-- Dialog container (dimmed card) -->
         <LinearLayout
-            android:id="@+id/achievementsList"
+            android:id="@+id/achievementsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
             android:orientation="vertical"
-            android:padding="8dp"/>
-    </ScrollView>
-</RelativeLayout>
+            android:padding="24dp"
+            android:background="#76000000"
+            android:elevation="8dp">
+
+            <TextView
+                android:id="@+id/achievementsTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ACHIEVEMENTS"
+                android:textColor="#FFFFFF"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:layout_gravity="center_horizontal" />
+
+            <!-- Scrollable list of achievements -->
+            <ScrollView
+                android:id="@+id/achievementsScroll"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp">
+
+                <LinearLayout
+                    android:id="@+id/achievementsList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="8dp" />
+            </ScrollView>
+
+        </LinearLayout>
+
+        <!-- Close button (X) like How To Play -->
+        <ImageButton
+            android:id="@+id/closeAchievementsBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_margin="16dp"
+            android:src="@drawable/baseline_close_24"
+            android:background="@drawable/close_button_circle"
+            android:contentDescription="Close"
+            android:scaleType="centerInside"
+            android:tint="#000000"
+            android:elevation="12dp"
+            android:translationZ="12dp" />
+    </RelativeLayout>
+</FrameLayout>

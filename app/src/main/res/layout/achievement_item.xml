@@ -12,7 +12,8 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_marginEnd="12dp"
-        android:src="@drawable/ic_trophy_locked" />
+        android:src="@drawable/ic_trophy_locked"
+        android:contentDescription="@string/achievement_icon" />
 
     <LinearLayout
         android:orientation="vertical"
@@ -22,12 +23,16 @@
 
         <TextView
             android:id="@+id/achievementTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:textColor="#FFF8D6"
             android:textSize="18sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/achievementDesc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:textColor="#BEBEBE"
             android:textSize="14sp" />
     </LinearLayout>

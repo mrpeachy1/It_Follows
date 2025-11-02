@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">It Slithers</string>
     <string name="title_activity_maps">MapsActivity</string>
-
+    <string name="achievement_icon">Achievement icon</string>
     <string name="how_to_play_text">"Run in real life to stay ahead of the snail.\n\n
 The snail is always coming — slowly but surely.\n
 It follows your GPS location and never stops.\n\n
