@@ -125,7 +125,37 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/buttonCredits" />
 
+        <Button
+            android:id="@+id/achievementsBtn"
+            android:layout_width="180dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/button_use_selector"
+            android:text="Achievements"
+            android:textColor="#FFF8D6"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/continueButton" />
+
+        <TextView
+            android:id="@+id/achievementsBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/achievement_bg"
+            android:padding="6dp"
+            android:text="0/0"
+            android:textColor="#111111"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintStart_toEndOf="@id/achievementsBtn"
+            app:layout_constraintTop_toTopOf="@id/achievementsBtn" />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <include
+        layout="@layout/achievements_panel" />
 
 </FrameLayout>
