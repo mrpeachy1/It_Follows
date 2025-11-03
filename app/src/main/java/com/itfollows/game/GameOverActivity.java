@@ -36,7 +36,7 @@ public class GameOverActivity extends AppCompatActivity {
     private RewardedAd mRewardedAd;
     private final String TAG = "GameOverActivity_Ad";
     // Use test Ad Unit ID for development. Replace with your real ID for production.
-    private final String AD_UNIT_ID = "ca-app-pub-3940256099942544/5224354917";
+    private final String AD_UNIT_ID = "ca-app-pub-2457437725733859/2353449523";
     private boolean adLoading = false;
     private boolean loadingForImmediateUse = true;
     private boolean hasTriggeredNextPreload = false;
