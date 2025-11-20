@@ -1,6 +1,1 @@
-# app-ads.txt for It Follows: The Snail Chase Game
-# Hosted on GitHub Pages
-# Last updated: November 2025
-
-# Google AdMob
 google.com, pub-2457437725733859, DIRECT, f08c47fec0942fa0
