@@ -21,4 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "It Follows"
 include(":app")
+include(":shared")
  
