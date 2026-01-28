@@ -13,8 +13,6 @@ import android.os.PowerManager;
 import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.itfollows.shared.GeoUtils;
-
 public class SnailPhysics {
     private static SnailPhysics I;
 
@@ -59,7 +57,7 @@ public class SnailPhysics {
                 distToMove);
         repo.setSnailLatLng(moved[0], moved[1], nowMs);
 
-        double d = GeoUtils.INSTANCE.distanceMeters(moved[0], moved[1], player[0], player[1]);
+        double d = GeoMath.haversineMeters(moved[0], moved[1], player[0], player[1]);
 
         if (d <= 25.0) {
             if (!repo.isSnailProximityAlertShown() && shouldShowBackgroundAlert()) {
