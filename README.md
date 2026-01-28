@@ -40,6 +40,14 @@ git clone https://github.com/mrpeachy1/it-follows-snail.git
 cd it-follows-snail
 ```
 
+## 🧩 Kotlin Multiplatform Shared Module
+
+The new `shared/` module is a Kotlin Multiplatform (KMP) scaffold for future cross-platform logic. Place any shared game logic in `shared/src/commonMain/kotlin` as we migrate features. To build the shared module on its own:
+
+```bash
+./gradlew :shared:assemble
+```
+
 ## 📄 Java Files
 
 - `MainMenuActivity.java`: Simple activity that launches `GameActivity`.
