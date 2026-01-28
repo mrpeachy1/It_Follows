@@ -42,7 +42,7 @@ cd it-follows-snail
 
 ## 🧩 Kotlin Multiplatform Shared Module
 
-The new `shared/` module is a Kotlin Multiplatform (KMP) scaffold for future cross-platform logic. Place any shared game logic in `shared/src/commonMain/kotlin` as we migrate features. To build the shared module on its own:
+The new `shared/` module is a Kotlin Multiplatform (KMP) scaffold for future cross-platform logic. Shared logic lives in `shared/src/commonMain/kotlin`, starting with `GeoUtils.kt` for the snail chase geo math. To build the shared module on its own:
 
 ```bash
 ./gradlew :shared:assemble
