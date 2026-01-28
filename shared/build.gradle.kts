@@ -4,11 +4,22 @@ plugins {
 }
 
 kotlin {
-    androidTarget()
+    androidTarget {
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+                }
+            }
+        }
+    }
 
-    val iosTargets = listOf(iosArm64(), iosSimulatorArm64())
-    iosTargets.forEach { target ->
-        target.binaries.framework {
+    // iOS targets (will be disabled on Windows, that's fine)
+    iosArm64()
+    iosSimulatorArm64()
+
+    targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>().configureEach {
+        binaries.framework {
             baseName = "shared"
         }
     }
@@ -16,12 +27,15 @@ kotlin {
     sourceSets {
         val commonMain by getting
         val commonTest by getting
+
         val androidMain by getting
         val androidUnitTest by getting
+
         val iosArm64Main by getting
         val iosSimulatorArm64Main by getting
         val iosArm64Test by getting
         val iosSimulatorArm64Test by getting
+
         val iosMain by creating {
             dependsOn(commonMain)
             iosArm64Main.dependsOn(this)
@@ -35,7 +49,7 @@ kotlin {
     }
 }
 
-android {
+    android {
     namespace = "com.itfollows.shared"
     compileSdk = 35
 
