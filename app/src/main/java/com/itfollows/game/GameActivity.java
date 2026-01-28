@@ -991,15 +991,15 @@ public class GameActivity extends AppCompatActivity implements OnMapReadyCallbac
             swapButton.setText("🔀 Shell Swap (15,000)");
         }
     }
+
     private double getBearing(LatLng from, LatLng to) {
-        return GeoUtils.bearingDegrees(
+        return GeoUtils.INSTANCE.bearingDegrees(
                 from.latitude,
                 from.longitude,
                 to.latitude,
                 to.longitude
         );
     }
-
     private LatLng moveAwayFrom(LatLng from, double bearing, double meters) {
         double R = 6371000.0; // Earth radius in meters
         double bearingRad = Math.toRadians(bearing);
