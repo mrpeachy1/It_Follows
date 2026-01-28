@@ -68,6 +68,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.Locale;
 
 import com.itfollows.game.ui.achievements.AchievementsManager;
+import com.itfollows.shared.GeoUtils;
 
 public class GameActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -991,17 +992,12 @@ public class GameActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
     private double getBearing(LatLng from, LatLng to) {
-        double lat1 = Math.toRadians(from.latitude);
-        double lon1 = Math.toRadians(from.longitude);
-        double lat2 = Math.toRadians(to.latitude);
-        double lon2 = Math.toRadians(to.longitude);
-        double dLon = lon2 - lon1;
-
-        double y = Math.sin(dLon) * Math.cos(lat2);
-        double x = Math.cos(lat1) * Math.sin(lat2) -
-                Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
-
-        return (Math.toDegrees(Math.atan2(y, x)) + 360) % 360;
+        return GeoUtils.bearingDegrees(
+                from.latitude,
+                from.longitude,
+                to.latitude,
+                to.longitude
+        );
     }
 
     private LatLng moveAwayFrom(LatLng from, double bearing, double meters) {
