@@ -68,6 +68,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.Locale;
 
 import com.itfollows.game.ui.achievements.AchievementsManager;
+import com.itfollows.shared.GeoUtils;
 
 public class GameActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -1099,15 +1100,12 @@ public class GameActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         // Distance in meters between player and snail
-        float[] results = new float[1];
-        Location.distanceBetween(
+        float distanceMeters = (float) GeoUtils.INSTANCE.distanceMeters(
                 currentPlayerLocation.latitude,
                 currentPlayerLocation.longitude,
                 snailPosition.latitude,
-                snailPosition.longitude,
-                results
+                snailPosition.longitude
         );
-        float distanceMeters = results[0];
 
         // Calculate an appropriate zoom level based on distance
         float zoomLevel;
