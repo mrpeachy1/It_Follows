@@ -4,23 +4,28 @@ plugins {
 }
 
 kotlin {
-    androidTarget()
+    androidTarget {
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+                }
+            }
+        }
+    }
 
     iosArm64()
     iosSimulatorArm64()
 
     sourceSets {
         val commonMain by getting
-
         val androidMain by getting {
             dependencies {
-                // This provides colorPrimary, colorOnPrimary, colorPrimaryVariant, etc.
                 implementation("com.google.android.material:material:1.12.0")
             }
         }
     }
 }
-
 
 android {
     namespace = "com.itfollows.shared2"
@@ -28,5 +33,10 @@ android {
 
     defaultConfig {
         minSdk = 26
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 }
