@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.widget.TextView;
-
+import com.itfollows.shared.GeoUtils;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -36,7 +36,6 @@ public class MainActivity extends AppCompatActivity {
         ContextCompat.startForegroundService(this, new Intent(this, GameService.class));
         String platformName = KmmBridge.platformName();
         android.util.Log.d("KMM", "Platform: " + platformName);
-        android.util.Log.d("KMM", "Platform: " + KmmBridge.platformName());
 
     }
 
@@ -62,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         double[] p = repo.getPlayerLatLng();
         double[] s = repo.getSnailLatLng();
         if (p == null || s == null) return;
-        double d = GeoMath.haversineMeters(p[0], p[1], s[0], s[1]);
+        double d = GeoUtils.distanceMeters(p[0], p[1], s[0], s[1]);
         if (distanceText != null) {
             distanceText.setText(String.format("Snail: %.1f m", d));
         }
