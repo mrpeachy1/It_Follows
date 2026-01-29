@@ -9,7 +9,6 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import com.itfollows.shared.KmmBridge;
 import com.itfollows.shared.DistancePresenter;
 
 
@@ -34,9 +33,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_maps);
         distanceText = findViewById(R.id.snailDistanceText);
         ContextCompat.startForegroundService(this, new Intent(this, GameService.class));
-        String platformName = KmmBridge.platformName();
-        android.util.Log.d("KMM", "Platform: " + platformName);
-
     }
 
     @Override
