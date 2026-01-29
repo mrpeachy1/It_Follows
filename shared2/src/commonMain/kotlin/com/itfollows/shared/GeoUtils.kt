@@ -26,4 +26,6 @@ object GeoUtils {
         val c = 2.0 * atan2(sqrt(a), sqrt(1.0 - a))
         return EARTH_RADIUS_METERS * c
     }
+    fun distanceMeters(a: LatLng, b: LatLng): Double =
+        distanceMeters(a.lat, a.lng, b.lat, b.lng)
 }
