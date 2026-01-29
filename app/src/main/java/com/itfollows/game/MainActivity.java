@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.itfollows.shared.KmmBridge;
+import com.itfollows.shared.DistancePresenter;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -61,9 +62,9 @@ public class MainActivity extends AppCompatActivity {
         double[] p = repo.getPlayerLatLng();
         double[] s = repo.getSnailLatLng();
         if (p == null || s == null) return;
-        double d = GeoUtils.distanceMeters(p[0], p[1], s[0], s[1]);
+        String label = DistancePresenter.snailDistanceLabel(p[0], p[1], s[0], s[1]);
         if (distanceText != null) {
-            distanceText.setText(String.format("Snail: %.1f m", d));
+            distanceText.setText(label);
         }
     }
 }
