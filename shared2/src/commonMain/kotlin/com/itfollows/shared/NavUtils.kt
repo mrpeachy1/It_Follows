@@ -8,6 +8,11 @@ object NavUtils {
 
     private fun toRadians(deg: Double) = deg * (PI / 180.0)
     private fun toDegrees(rad: Double) = rad * (180.0 / PI)
+    @JvmStatic
+    fun moveToward(from: LatLng, to: LatLng, d: Double): LatLng {
+        val out = moveToward(from.lat, from.lng, to.lat, to.lng, d)
+        return LatLng(out[0], out[1])
+    }
 
     @JvmStatic
     fun moveToward(lat1: Double, lng1: Double, lat2: Double, lng2: Double, d: Double): DoubleArray {
