@@ -20,5 +20,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "It Follows"
-include(":app")
- 
+include(":app", ":shared2")
+project(":shared2").projectDir = file("shared2")

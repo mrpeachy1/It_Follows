@@ -46,7 +46,7 @@ android {
 }
 
 dependencies {
-
+    implementation(project(":shared2"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -67,7 +67,7 @@ dependencies {
     implementation("androidx.activity:activity:1.9.2")
     implementation("androidx.fragment:fragment:1.8.3")
     implementation("com.google.code.gson:gson:2.11.0")
-}
+    }
 secrets {
     // To add your Maps API key to this project:
     // 1. If the secrets.properties file does not exist, create it in the same folder as the local.properties file.
