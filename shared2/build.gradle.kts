@@ -19,6 +19,13 @@ kotlin {
 
     sourceSets {
         val commonMain by getting
+
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
+
         val androidMain by getting {
             dependencies {
                 implementation("com.google.android.material:material:1.12.0")
