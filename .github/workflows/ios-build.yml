@@ -1,0 +1,109 @@
+name: iOS Build
+
+on:
+  push:
+    paths:
+      - 'ios/SnailGameIOS/**'
+      - 'README_IOS.md'
+      - '.github/workflows/ios-build.yml'
+  pull_request:
+    paths:
+      - 'ios/SnailGameIOS/**'
+      - 'README_IOS.md'
+      - '.github/workflows/ios-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  simulator-build-test:
+    name: Simulator build and XCTest
+    runs-on: macos-26
+    timeout-minutes: 30
+
+    env:
+      PROJECT_PATH: ios/SnailGameIOS/SnailGameIOS.xcodeproj
+      SCHEME: SnailGameIOS
+      CONFIGURATION: Debug
+      TESTS_DIR: ios/SnailGameIOS/SnailGameIOSTests
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Print Xcode version and available simulators
+        run: |
+          set -euo pipefail
+          sw_vers
+          echo "Selected developer directory:"
+          xcode-select -p
+          echo "Selected Xcode version:"
+          xcodebuild -version
+          echo "Available simulators:"
+          xcrun simctl list devices available
+
+      - name: Select available iOS simulator
+        run: |
+          set -euo pipefail
+
+          device_line="$(xcrun simctl list devices available | awk '/^[[:space:]]+iPhone (17|16|15)/ { print; exit }')"
+          if [ -z "$device_line" ]; then
+            device_line="$(xcrun simctl list devices available | awk '/^[[:space:]]+iPhone/ { print; exit }')"
+          fi
+
+          if [ -z "$device_line" ]; then
+            echo "No available iPhone simulator was found on this runner." >&2
+            exit 1
+          fi
+
+          simulator_udid="$(printf '%s\n' "$device_line" | grep -Eo '[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}' | head -n 1 || true)"
+          simulator_name="$(printf '%s\n' "$device_line" | sed -E 's/^[[:space:]]*//; s/[[:space:]]+\([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}\).*$//')"
+
+          if [ -z "$simulator_udid" ] || [ -z "$simulator_name" ]; then
+            echo "Could not parse simulator from line: $device_line" >&2
+            exit 1
+          fi
+
+          echo "Selected simulator: $simulator_name ($simulator_udid)"
+          echo "SIMULATOR_NAME=$simulator_name" >> "$GITHUB_ENV"
+          echo "SIMULATOR_UDID=$simulator_udid" >> "$GITHUB_ENV"
+          echo "SIMULATOR_DESTINATION=platform=iOS Simulator,id=$simulator_udid" >> "$GITHUB_ENV"
+
+      - name: Show schemes and destinations
+        run: |
+          set -euo pipefail
+          test -f "$PROJECT_PATH/project.pbxproj"
+          test -f "$PROJECT_PATH/xcshareddata/xcschemes/$SCHEME.xcscheme"
+          xcodebuild -list -project "$PROJECT_PATH"
+          xcodebuild -showdestinations -project "$PROJECT_PATH" -scheme "$SCHEME"
+
+      - name: Build app for iOS simulator
+        run: |
+          set -euo pipefail
+          set -o pipefail
+          xcodebuild build \
+            -project "$PROJECT_PATH" \
+            -scheme "$SCHEME" \
+            -configuration "$CONFIGURATION" \
+            -destination "$SIMULATOR_DESTINATION" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
+
+      - name: Run XCTest unit tests
+        run: |
+          set -euo pipefail
+          set -o pipefail
+          if [ -d "$TESTS_DIR" ] && [ -n "$(find "$TESTS_DIR" -name '*.swift' -print -quit)" ]; then
+            xcodebuild test \
+              -project "$PROJECT_PATH" \
+              -scheme "$SCHEME" \
+              -configuration "$CONFIGURATION" \
+              -destination "$SIMULATOR_DESTINATION" \
+              CODE_SIGNING_ALLOWED=NO \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGN_IDENTITY=""
+          else
+            echo "No XCTest Swift files found under $TESTS_DIR; skipping test step."
+          fi
