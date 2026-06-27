@@ -1,6 +1,5 @@
-import CoreLocation
-import MapKit
 import SwiftUI
+import MapKit
 
 struct ContentView: View {
     @StateObject private var locationManager = LocationManager()
@@ -8,83 +7,58 @@ struct ContentView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            Map(position: $game.cameraPosition) {
-                UserAnnotation()
-                if let snail = game.state.snail {
-                    Annotation("Snail", coordinate: snail.clLocationCoordinate) {
-                        Image("Snail")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 44, height: 44)
-                            .shadow(radius: 4)
+            Map(coordinateRegion: $game.region)
+                .ignoresSafeArea()
+
+            VStack(spacing: 8) {
+                Text("Snail Game")
+                    .font(.title2)
+                    .bold()
+
+                Text(statusText)
+                    .font(.subheadline)
+
+                HStack(spacing: 12) {
+                    Text("Score: \(game.state.score)")
+                    if let player = game.state.player {
+                        Text("Player: \(format(player.latitude)), \(format(player.longitude))")
                     }
                 }
-            }
-            .mapControls {
-                MapUserLocationButton()
-                MapCompass()
-                MapScaleView()
-            }
-            .ignoresSafeArea()
+                .font(.caption)
 
-            VStack(spacing: 12) {
-                statusPanel
-                controls
-                if let error = locationManager.lastErrorMessage {
-                    Text(error).font(.footnote).foregroundStyle(.red).padding(8).background(.thinMaterial).clipShape(RoundedRectangle(cornerRadius: 10))
+                Button(game.state.isActive ? "Pause" : "Start") {
+                    if game.state.isActive {
+                        game.pause()
+                    } else {
+                        game.start()
+                    }
                 }
+                .buttonStyle(.borderedProminent)
             }
+            .padding()
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
             .padding()
         }
         .onAppear {
             locationManager.requestPermission()
             locationManager.start()
+            game.start()
         }
         .onReceive(locationManager.$currentCoordinate) { coordinate in
             game.updatePlayer(coordinate)
         }
     }
 
-    private var statusPanel: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(game.state.isActive ? "Snail is following…" : "Snail chase paused")
-                .font(.headline)
-            Text("Score: \(game.state.score) • Time: \(game.state.elapsedSeconds)s")
-            Text("Distance: \(distanceText)")
-            Text(permissionText)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+    private var statusText: String {
+        if game.state.snail == nil {
+            return "Waiting for location..."
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        return game.state.isActive ? "Snail chase active" : "Paused"
     }
 
-    private var controls: some View {
-        HStack {
-            Button(game.state.isActive ? "Pause" : "Start") {
-                game.state.isActive ? game.stopGame() : game.startGame()
-            }
-            .buttonStyle(.borderedProminent)
-
-            Button("Reset") { game.resetGame() }
-                .buttonStyle(.bordered)
-        }
-    }
-
-    private var distanceText: String {
-        guard let meters = game.state.distanceToSnailMeters else { return "waiting for location" }
-        return String(format: "%.1f m", meters)
-    }
-
-    private var permissionText: String {
-        switch locationManager.authorizationStatus {
-        case .notDetermined: return "Location permission not decided."
-        case .restricted, .denied: return "Location is disabled for this app. Enable it in Settings."
-        case .authorizedAlways, .authorizedWhenInUse: return "Location enabled."
-        @unknown default: return "Unknown location permission state."
-        }
+    private func format(_ value: Double) -> String {
+        String(format: "%.5f", value)
     }
 }
 

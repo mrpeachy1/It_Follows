@@ -4,7 +4,10 @@ import MapKit
 @MainActor
 final class GameViewModel: ObservableObject {
     @Published private(set) var state = GameState()
-    @Published var cameraPosition: MapCameraPosition = .automatic
+    @Published var region = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 39.2904, longitude: -76.6122),
+        span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+    )
 
     private var timer: Timer?
 
@@ -18,7 +21,7 @@ final class GameViewModel: ObservableObject {
                 distanceMeters: 0
             )
         }
-        cameraPosition = .region(MKCoordinateRegion(center: player.clLocationCoordinate, span: MKCoordinateSpan(latitudeDelta: 0.003, longitudeDelta: 0.003)))
+        region.center = CLLocationCoordinate2D(latitude: player.latitude, longitude: player.longitude)
     }
 
     func startGame() {
@@ -54,5 +57,16 @@ final class GameViewModel: ObservableObject {
         } else {
             state.score += max(1, Int(delta))
         }
+    }
+}
+extension GameViewModel {
+    func start() {
+        state.isActive = true
+    }
+
+    func pause() {
+        state.isActive = false
+        timer?.invalidate()
+        timer = nil
     }
 }

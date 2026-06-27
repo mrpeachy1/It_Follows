@@ -17,3 +17,16 @@ local.properties
 # Local secret files (do not commit)
 secrets.properties
 Coosea-SN339D-Android-14_2025-07-28_132250.logcat
+# Local exports / build artifacts
+*.zip
+*.ipa
+*.apk
+*.aab
+*.jks
+*.keystore
+*.patch
+*.patch.txt
+artifacts/
+DerivedData/
+*.xcuserstate
+**/xcuserdata/
